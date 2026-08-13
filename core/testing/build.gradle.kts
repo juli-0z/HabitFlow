@@ -23,6 +23,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":core:model"))   // TestDataFactory 生成 model 测试数据（§3.2 单向：testing -> model）
     implementation(libs.junit)
     implementation(libs.kotlinx.coroutines.test)
 }
