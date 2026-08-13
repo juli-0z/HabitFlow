@@ -14,14 +14,9 @@ compileSdk = "37"
 minSdk = "24"
 targetSdk = "36"
 
-# AndroidX（模板保留项）
-coreKtx = "1.19.0"
+# AndroidX（模板保留项 → 迁移后仅留 activity 与 material：activity-compose + XML 启动主题）
 activityKtx = "1.13.0"
-appcompat = "1.6.1"
 material = "1.10.0"
-constraintlayout = "2.1.4"
-navigationFragmentKtx = "2.6.0"
-navigationUiKtx = "2.6.0"
 
 # AndroidX（架构目标项，TECH_DESIGN_v1.1 §2.3）
 navigationCompose = "2.9.0"
@@ -37,21 +32,14 @@ okhttp = "4.12.0"
 
 # 测试
 junit = "4.13.2"
-junitVersion = "1.1.5"
-espressoCore = "3.5.1"
 coroutinesTest = "1.10.2"
 mockk = "1.13.13"
 turbine = "1.2.0"
 
 [libraries]
-# AndroidX（模板保留项）
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+# AndroidX
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityKtx" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
-androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
-androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
-androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
 
 # AndroidX（架构目标项）
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -80,8 +68,6 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 
 # 测试
 junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }

@@ -1,21 +1,24 @@
+// :app 壳模块（TECH_DESIGN_v1.1 §3.3：Application、MainActivity、NavGraph 装配、顶层 DI）
 plugins {
     alias(libs.plugins.android.application)
-    // android.builtInKotlin=false 后必须显式应用 Kotlin 插件（TECH_DESIGN_v1.1 §3.4）
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 android {
-    namespace = "com.example.habitflow"
+    namespace = "cn.zjl.habitflow"
     compileSdk {
-        version = release(37) {
+        version = release(libs.versions.compileSdk.get().toInt()) {
             minorApiLevel = 1
         }
     }
 
     defaultConfig {
-        applicationId = "com.example.habitflow"
-        minSdk = 24
-        targetSdk = 36
+        applicationId = "cn.zjl.habitflow"   // 旧 DSL（android.newDsl=false）：applicationId 在 defaultConfig 内
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
 
@@ -24,9 +27,7 @@ android {
 
     buildTypes {
         release {
-            optimization {
-                enable = false
-            }
+            optimization { enable = true } // AGP 9 DSL：替代 isMinifyEnabled + isShrinkResources
         }
     }
     compileOptions {
@@ -34,8 +35,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
-        viewBinding = true
+        compose = true
     }
+    testOptions { unitTests.isIncludeAndroidResources = true }  // Robolectric 需要
 }
 
 // Java/Kotlin 目标统一 17（TECH_DESIGN_v1.1 §11.1）
@@ -46,14 +48,20 @@ kotlin {
 }
 
 dependencies {
-    implementation(libs.androidx.activity.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.navigation.fragment.ktx)
-    implementation(libs.androidx.navigation.ui.ktx)
+    implementation(project(":feature:home"))
+    implementation(project(":feature:stats"))
+    implementation(project(":feature:settings"))
+    implementation(project(":core:designsystem"))
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.navigation.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.lifecycle.runtime.compose)
+    // 差异标注：§3.3 未列 activity-compose/material3/BOM，MainActivity 空壳编译必需（见交付说明）
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.compose.material3)
+    // XML 启动主题 Theme.Material3.DayNight.NoActionBar 需要（§11.5 双轨主题）
     implementation(libs.material)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.junit)
 }
