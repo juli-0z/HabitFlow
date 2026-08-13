@@ -66,6 +66,7 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", v
 # 网络
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 
 # 测试
 junit = { group = "junit", name = "junit", version.ref = "junit" }
