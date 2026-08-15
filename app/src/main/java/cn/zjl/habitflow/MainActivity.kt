@@ -10,8 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import cn.zjl.habitflow.designsystem.theme.HabitFlowTheme
 import cn.zjl.habitflow.feature.home.HomeScreen
+import cn.zjl.habitflow.feature.home.HomeViewModel
 import cn.zjl.habitflow.feature.settings.SettingsScreen
 import cn.zjl.habitflow.feature.stats.StatsScreen
 import cn.zjl.habitflow.navigation.HomeRoute
@@ -39,7 +41,11 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         startDestination = HomeRoute,
                     ) {
-                        composable<HomeRoute> { HomeScreen() }
+                        composable<HomeRoute> {
+                            // VM 在导航装配层获取（§4.2：Screen 禁止内部 hiltViewModel）
+                            val viewModel: HomeViewModel = hiltViewModel()
+                            HomeScreen(viewModel = viewModel)
+                        }
                         composable<StatsRoute> { StatsScreen() }
                         composable<SettingsRoute> { SettingsScreen() }
                     }
