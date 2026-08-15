@@ -4,20 +4,26 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import cn.zjl.habitflow.designsystem.theme.HabitFlowTheme
+import cn.zjl.habitflow.feature.home.HomeScreen
+import cn.zjl.habitflow.feature.settings.SettingsScreen
+import cn.zjl.habitflow.feature.stats.StatsScreen
+import cn.zjl.habitflow.navigation.HomeRoute
+import cn.zjl.habitflow.navigation.SettingsRoute
+import cn.zjl.habitflow.navigation.StatsRoute
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * 单 Activity（TECH_DESIGN_v1.1 §4.5）：仅承载 NavHost。
  *
- * 本轮为最小可运行迁移：内容为空壳（Compose 启动即达），
- * NavHost + BottomBar 接入见任务 1.12；主题由 :core:designsystem 接管（§11.5 双轨）。
+ * 任务 1.12：NavHost 骨架 + 三个 feature 根目的地（占位 Screen，类型安全路由）；
+ * BottomBar 集成见任务 2.5（§4.5：currentBackStackEntryAsState 同步选中态）。
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -27,9 +33,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             HabitFlowTheme {
+                val navController = rememberNavController()
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text("HabitFlow")
+                    NavHost(
+                        navController = navController,
+                        startDestination = HomeRoute,
+                    ) {
+                        composable<HomeRoute> { HomeScreen() }
+                        composable<StatsRoute> { StatsScreen() }
+                        composable<SettingsRoute> { SettingsScreen() }
                     }
                 }
             }

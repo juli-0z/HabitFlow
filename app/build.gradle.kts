@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)   // §4.5 类型安全路由（@Serializable）
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
@@ -57,6 +58,7 @@ dependencies {
     implementation(libs.navigation.compose)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.kotlinx.serialization.json)   // 路由序列化
     // 差异标注：§3.3 未列 activity-compose/material3/BOM，MainActivity 空壳编译必需（见交付说明）
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

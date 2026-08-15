@@ -29,6 +29,10 @@ kotlin {
 dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:designsystem"))
+    // §3.3 feature 模板未列 compose 依赖，feature 直接写 Compose UI 需要（构建实测补齐）
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.material3)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.lifecycle.runtime.compose)
