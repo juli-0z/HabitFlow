@@ -6,6 +6,7 @@ import cn.zjl.habitflow.model.Habit
 import cn.zjl.habitflow.testing.MainDispatcherRule
 import cn.zjl.habitflow.testing.TestDataFactory
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
@@ -68,5 +69,38 @@ class HomeViewModelTest {
 
         assertEquals(false, viewModel.uiState.value.isLoading)
         assertEquals("db broken", viewModel.uiState.value.errorMessage)
+    }
+
+    // ---- 2.3 编辑器校验（§5.1，归属 2.7 完整用例的提前部分）----
+
+    @Test
+    fun `invalid name rejects save without touching repository`() = runTest {
+        coEvery { repository.observeHabits() } returns flowOf(emptyList<Habit>())
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onShowCreateDialog()
+        viewModel.onSaveHabit(name = "   ", frequency = Frequency.DAILY, targetPerWeek = 0)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(true, viewModel.uiState.value.isEditorVisible)
+        assertEquals("习惯名称不能为空", viewModel.uiState.value.editorErrorMessage)
+        coVerify(exactly = 0) { repository.saveHabit(any()) }
+    }
+
+    @Test
+    fun `valid habit saves and closes editor`() = runTest {
+        coEvery { repository.observeHabits() } returns flowOf(emptyList<Habit>())
+        coEvery { repository.saveHabit(any()) } returns 1L
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onShowCreateDialog()
+        viewModel.onSaveHabit(name = "晨跑", frequency = Frequency.DAILY, targetPerWeek = 0)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.value.isEditorVisible)
+        assertEquals(null, viewModel.uiState.value.editorErrorMessage)
+        coVerify(exactly = 1) { repository.saveHabit(any()) }
     }
 }
