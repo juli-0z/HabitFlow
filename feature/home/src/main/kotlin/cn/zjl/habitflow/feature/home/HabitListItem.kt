@@ -1,5 +1,6 @@
 package cn.zjl.habitflow.feature.home
 
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -9,16 +10,26 @@ import cn.zjl.habitflow.model.Habit
 
 /**
  * 习惯列表项（TECH_DESIGN_v1.2 §4.2：Composable 按功能命名，文件同名）
- * 2.4 任务接入打卡 CheckBox 交互。
+ *
+ * 2.4：CheckBox 接入打卡交互——勾选 = 打卡（onCheckedChange(true)），
+ * 取消 = 撤销打卡；状态来自当日打卡记录（§5.2：记录表存在与否表示打卡状态）。
  */
 @Composable
 fun HabitListItem(
     habit: Habit,
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     ListItem(
         headlineContent = { Text(text = habit.name) },
         supportingContent = { Text(text = frequencyText(habit)) },
+        leadingContent = {
+            Checkbox(
+                checked = isChecked,
+                onCheckedChange = onCheckedChange,
+            )
+        },
         modifier = modifier,
     )
 }

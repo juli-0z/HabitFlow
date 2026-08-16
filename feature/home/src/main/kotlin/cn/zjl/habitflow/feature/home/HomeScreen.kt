@@ -52,6 +52,9 @@ fun HomeScreen(
             )
             else -> HabitList(
                 habits = uiState.habits,
+                checkedHabitIds = uiState.checkedHabitIds,
+                onCheckIn = viewModel::onCheckIn,
+                onCheckOut = viewModel::onCheckOut,
                 modifier = Modifier.padding(innerPadding),
             )
         }
@@ -70,11 +73,20 @@ fun HomeScreen(
 @Composable
 private fun HabitList(
     habits: List<Habit>,
+    checkedHabitIds: Set<Long>,
+    onCheckIn: (Long) -> Unit,
+    onCheckOut: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(modifier = modifier.fillMaxSize()) {
         items(habits, key = { it.id }) { habit ->
-            HabitListItem(habit = habit)
+            HabitListItem(
+                habit = habit,
+                isChecked = habit.id in checkedHabitIds,
+                onCheckedChange = { checked ->
+                    if (checked) onCheckIn(habit.id) else onCheckOut(habit.id)
+                },
+            )
         }
     }
 }

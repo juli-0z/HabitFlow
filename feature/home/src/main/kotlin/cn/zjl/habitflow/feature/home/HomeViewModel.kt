@@ -9,11 +9,16 @@ import cn.zjl.habitflow.domain.ValidationResult
 import cn.zjl.habitflow.model.Frequency
 import cn.zjl.habitflow.model.Habit
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -35,17 +40,34 @@ class HomeViewModel @Inject constructor(
         observeHabits()
     }
 
-    /** 订阅未归档习惯列表（§5.1：软删除过滤在 DAO），Flow 响应式自动刷新 */
+    /**
+     * 订阅未归档习惯列表（§5.1：软删除过滤在 DAO），
+     * 并合并每个习惯当日打卡状态（§5.2：observeChecked Flow），实现 UI 自动刷新。
+     */
     private fun observeHabits() {
         viewModelScope.launch {
             habitRepository.observeHabits()
+                .flatMapLatest { habits ->
+                    observeCheckedStates(habits).map { checkedIds -> habits to checkedIds }
+                }
                 .catch { e ->
                     _uiState.update { it.copy(isLoading = false, errorMessage = e.toUserMessage()) }
                 }
-                .collect { habits ->
-                    _uiState.update { HomeUiState(habits = habits, isLoading = false) }
+                .collect { (habits, checkedIds) ->
+                    _uiState.update {
+                        HomeUiState(habits = habits, isLoading = false, checkedHabitIds = checkedIds)
+                    }
                 }
         }
+    }
+
+    /** 当日已打卡习惯 id 集合（combine 合并各习惯的 observeChecked 流） */
+    private fun observeCheckedStates(habits: List<Habit>): kotlinx.coroutines.flow.Flow<Set<Long>> {
+        if (habits.isEmpty()) return flowOf(emptySet())
+        val today = LocalDate.now()
+        return combine(habits.map { habit ->
+            habitRepository.observeChecked(habit.id, today).map { checked -> if (checked) habit.id else null }
+        }) { values -> values.filterNotNull().toSet() }
     }
 
     // ---- 编辑器意图（2.3，§5.1 新建/编辑共用校验）----
@@ -90,6 +112,19 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+    // ---- 打卡意图（2.4，§5.2：打卡 = 插入当日记录，撤销 = 删除当日记录）----
+
+    fun onCheckIn(habitId: Long) {
+        launchTask(block = {
+            habitRepository.checkIn(habitId, LocalDate.now())
+        })
+    }
+
+    fun onCheckOut(habitId: Long) {
+        launchTask(block = {
+            habitRepository.checkOut(habitId, LocalDate.now())
+        })
+    }
 }
 
 /** 首页状态（§4.2：页面级 data class，ViewModel 同文件定义） */
@@ -97,6 +132,7 @@ data class HomeUiState(
     val habits: List<Habit> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    val checkedHabitIds: Set<Long> = emptySet(),     // 当日已打卡习惯（2.4，§5.2）
     val isEditorVisible: Boolean = false,        // 编辑器弹窗可见（2.3）
     val editingHabit: Habit? = null,             // 编辑目标（null = 新建）
     val editorErrorMessage: String? = null,      // 弹窗内校验错误（§5.1）

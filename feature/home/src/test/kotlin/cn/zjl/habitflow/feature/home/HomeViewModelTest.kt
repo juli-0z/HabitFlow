@@ -50,6 +50,8 @@ class HomeViewModelTest {
             TestDataFactory.habit(id = 2, name = "阅读", targetPerWeek = 3, frequency = Frequency.WEEKLY),
         )
         coEvery { repository.observeHabits() } returns flowOf(habits)
+        // 2.4：observeHabits 内部会为每个习惯合并 observeChecked 流（§5.2），需 stub
+        coEvery { repository.observeChecked(any(), any()) } returns flowOf(false)
 
         val viewModel = HomeViewModel(repository)
         mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
