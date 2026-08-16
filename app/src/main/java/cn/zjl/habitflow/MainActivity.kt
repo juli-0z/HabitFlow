@@ -9,6 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -18,6 +19,7 @@ import cn.zjl.habitflow.designsystem.theme.HabitFlowTheme
 import cn.zjl.habitflow.feature.home.HomeScreen
 import cn.zjl.habitflow.feature.home.HomeViewModel
 import cn.zjl.habitflow.feature.settings.SettingsScreen
+import cn.zjl.habitflow.feature.settings.SettingsViewModel
 import cn.zjl.habitflow.feature.stats.StatsScreen
 import cn.zjl.habitflow.navigation.HabitFlowBottomBar
 import cn.zjl.habitflow.navigation.HomeRoute
@@ -40,7 +42,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            HabitFlowTheme {
+            // 深色模式全局生效（2.6，§11.5 双轨）：activity 级 VM 状态驱动主题
+            val settingsViewModel: SettingsViewModel = hiltViewModel()
+            val settingsState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+
+            HabitFlowTheme(darkTheme = settingsState.isDarkMode) {
                 val navController = rememberNavController()
                 val backStackEntry by navController.currentBackStackEntryAsState()
 
@@ -71,7 +77,11 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(viewModel = viewModel)
                         }
                         composable<StatsRoute> { StatsScreen() }
-                        composable<SettingsRoute> { SettingsScreen() }
+                        composable<SettingsRoute> {
+                            // 目的地作用域 VM（§4.2：导航装配层获取；与 activity 级主题 VM 同源 DataStore）
+                            val settingsViewModel: SettingsViewModel = hiltViewModel()
+                            SettingsScreen(viewModel = settingsViewModel)
+                        }
                     }
                 }
             }
