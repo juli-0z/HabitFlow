@@ -63,6 +63,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.core)   // BottomBar 三 Tab 图标（material3 不传递 icons-core，§4.5）
     // XML 启动主题 Theme.Material3.DayNight.NoActionBar 需要（§11.5 双轨主题）
     implementation(libs.material)
     testImplementation(libs.junit)

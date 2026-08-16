@@ -4,28 +4,34 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import cn.zjl.habitflow.designsystem.theme.HabitFlowTheme
 import cn.zjl.habitflow.feature.home.HomeScreen
 import cn.zjl.habitflow.feature.home.HomeViewModel
 import cn.zjl.habitflow.feature.settings.SettingsScreen
 import cn.zjl.habitflow.feature.stats.StatsScreen
+import cn.zjl.habitflow.navigation.HabitFlowBottomBar
 import cn.zjl.habitflow.navigation.HomeRoute
 import cn.zjl.habitflow.navigation.SettingsRoute
 import cn.zjl.habitflow.navigation.StatsRoute
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
- * 单 Activity（TECH_DESIGN_v1.1 §4.5）：仅承载 NavHost。
+ * 单 Activity（TECH_DESIGN_v1.2 §4.5）：Scaffold + BottomBar + NavHost。
  *
- * 任务 1.12：NavHost 骨架 + 三个 feature 根目的地（占位 Screen，类型安全路由）；
- * BottomBar 集成见任务 2.5（§4.5：currentBackStackEntryAsState 同步选中态）。
+ * - BottomBar 选中态：currentBackStackEntryAsState + hierarchy（见 BottomBar.kt）；
+ * - Tab 切换：popUpTo(startDestination){saveState} + restoreState——三页 ViewModel
+ *   状态保留、切换不销毁（NavBackStackEntry 与 ViewModelStore 绑定，面试考点）；
+ * - VM 在导航装配层获取（§4.2：Screen 禁止内部 hiltViewModel）。
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -36,13 +42,31 @@ class MainActivity : ComponentActivity() {
         setContent {
             HabitFlowTheme {
                 val navController = rememberNavController()
-                Surface(modifier = Modifier.fillMaxSize()) {
+                val backStackEntry by navController.currentBackStackEntryAsState()
+
+                Scaffold(
+                    bottomBar = {
+                        HabitFlowBottomBar(
+                            currentDestination = backStackEntry?.destination,
+                            onNavigate = { route ->
+                                navController.navigate(route) {
+                                    // BottomBar 标准模式：回起点保存/恢复状态，避免 VM 销毁与栈堆积
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                        )
+                    },
+                ) { innerPadding ->
                     NavHost(
                         navController = navController,
                         startDestination = HomeRoute,
+                        modifier = Modifier.padding(innerPadding),
                     ) {
                         composable<HomeRoute> {
-                            // VM 在导航装配层获取（§4.2：Screen 禁止内部 hiltViewModel）
                             val viewModel: HomeViewModel = hiltViewModel()
                             HomeScreen(viewModel = viewModel)
                         }
