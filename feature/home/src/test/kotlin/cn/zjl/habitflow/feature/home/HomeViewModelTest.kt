@@ -1,6 +1,8 @@
 package cn.zjl.habitflow.feature.home
 
+import app.cash.turbine.test
 import cn.zjl.habitflow.data.repository.HabitRepository
+import cn.zjl.habitflow.designsystem.base.BaseEvent
 import cn.zjl.habitflow.model.Frequency
 import cn.zjl.habitflow.model.Habit
 import cn.zjl.habitflow.testing.MainDispatcherRule
@@ -9,10 +11,12 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -104,5 +108,62 @@ class HomeViewModelTest {
         assertEquals(false, viewModel.uiState.value.isEditorVisible)
         assertEquals(null, viewModel.uiState.value.editorErrorMessage)
         coVerify(exactly = 1) { repository.saveHabit(any()) }
+    }
+
+    // ---- 2.7 打卡状态流转（§8.1：打卡成功→状态更新）----
+
+    @Test
+    fun `check in marks habit as checked`() = runTest {
+        val habit = TestDataFactory.habit(id = 1, name = "晨跑")
+        val checkedFlow = MutableStateFlow(false)
+        coEvery { repository.observeHabits() } returns flowOf(listOf(habit))
+        coEvery { repository.observeChecked(1L, any()) } returns checkedFlow
+        coEvery { repository.checkIn(any(), any()) } returns Unit
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(emptySet<Long>(), viewModel.uiState.value.checkedHabitIds)
+
+        viewModel.onCheckIn(1L)
+        checkedFlow.value = true   // 模拟 DAO 响应式回推（§5.2）
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(setOf(1L), viewModel.uiState.value.checkedHabitIds)
+        coVerify(exactly = 1) { repository.checkIn(1L, any()) }
+    }
+
+    @Test
+    fun `check out removes checked id`() = runTest {
+        val habit = TestDataFactory.habit(id = 1, name = "晨跑")
+        val checkedFlow = MutableStateFlow(true)
+        coEvery { repository.observeHabits() } returns flowOf(listOf(habit))
+        coEvery { repository.observeChecked(1L, any()) } returns checkedFlow
+        coEvery { repository.checkOut(any(), any()) } returns Unit
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(setOf(1L), viewModel.uiState.value.checkedHabitIds)
+
+        viewModel.onCheckOut(1L)
+        checkedFlow.value = false
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(emptySet<Long>(), viewModel.uiState.value.checkedHabitIds)
+        coVerify(exactly = 1) { repository.checkOut(1L, any()) }
+    }
+
+    // ---- 2.7 打卡失败→Error 事件（§8.1，Turbine 断言一次性事件）----
+
+    @Test
+    fun `check in failure emits error event`() = runTest {
+        coEvery { repository.observeHabits() } returns flowOf(emptyList<Habit>())
+        coEvery { repository.checkIn(any(), any()) } throws IllegalStateException("db broken")
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.events.test {
+            viewModel.onCheckIn(1L)
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+            val event = awaitItem()
+            assertTrue(event is BaseEvent.ShowError)
+        }
     }
 }
