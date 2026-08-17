@@ -35,6 +35,7 @@ kotlinxSerialization = "1.11.0"
 
 # 测试
 junit = "4.13.2"
+junitVersion = "1.1.5"   # androidx.test.ext:junit（androidTest，v1.2 补回）
 coroutinesTest = "1.10.2"
 mockk = "1.13.13"
 turbine = "1.2.0"
@@ -75,6 +76,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 
 # 测试
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }

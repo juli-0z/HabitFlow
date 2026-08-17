@@ -42,4 +42,6 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.room.testing)  // 真库测试
     testImplementation(project(":core:testing"))
+    // §8.2/§8.4：Room 真库测试在 androidTest（inMemory + ApplicationProvider）
+    androidTestImplementation(libs.androidx.junit)
 }
