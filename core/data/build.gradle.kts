@@ -44,4 +44,5 @@ dependencies {
     testImplementation(project(":core:testing"))
     // §8.2/§8.4：Room 真库测试在 androidTest（inMemory + ApplicationProvider）
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.test.runner)   // AndroidJUnitRunner（ext-junit 不传递，2.8 实测补）
 }
