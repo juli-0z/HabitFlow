@@ -13,6 +13,15 @@ android {
     compileSdk = libs.versions.compileSdk.get().toInt()
     defaultConfig { minSdk = libs.versions.minSdk.get().toInt() }
     buildFeatures { compose = true }
+    // androidTest 依赖（mockk -> junit-jupiter）多 jar 含 META-INF 许可证文件，通配排除（2.9 实测）
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/LICENSE*",
+                "META-INF/NOTICE*",
+            )
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -47,5 +56,9 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(project(":core:testing"))
     androidTestImplementation(libs.compose.ui.test.junit4)
+    androidTestImplementation(libs.mockk.android)   // fake VM 直构（§8.3；仪器测试须用 mockk-android，2.9 实测）
+    // 2.8 实测教训：ext-junit 不传递 runner，需显式声明（§8.3 依赖清单）
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.test.runner)
     debugImplementation(libs.compose.ui.test.manifest)
 }

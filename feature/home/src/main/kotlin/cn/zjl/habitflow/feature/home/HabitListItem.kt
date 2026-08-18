@@ -5,6 +5,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import cn.zjl.habitflow.model.Frequency
 import cn.zjl.habitflow.model.Habit
 
@@ -28,6 +29,7 @@ fun HabitListItem(
             Checkbox(
                 checked = isChecked,
                 onCheckedChange = onCheckedChange,
+                modifier = Modifier.testTag("checkin_${habit.id}"),   // §8.3 UI 测试定位约定
             )
         },
         modifier = modifier,
