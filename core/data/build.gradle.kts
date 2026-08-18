@@ -16,6 +16,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // minSdk 24 使用 java.time（LocalDate）需要 core library desugaring（2.10 lint 实测）
+        isCoreLibraryDesugaringEnabled = true
     }
 }
 
@@ -27,6 +29,7 @@ kotlin {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)   // java.time 脱糖（minSdk 24，§5.2 LocalDate）
     implementation(project(":core:model"))
     implementation(project(":core:domain"))
     implementation(project(":core:network"))

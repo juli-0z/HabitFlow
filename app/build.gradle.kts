@@ -34,6 +34,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // 消费方须与依赖模块同步启用 desugaring（:feature:home/:core:data 已启用，2.10 AAR 元数据检查）
+        isCoreLibraryDesugaringEnabled = true
     }
     buildFeatures {
         compose = true
@@ -49,6 +51,7 @@ kotlin {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)   // 与依赖模块同步（AAR 元数据要求，2.10 实测）
     implementation(project(":feature:home"))
     implementation(project(":feature:stats"))
     implementation(project(":feature:settings"))

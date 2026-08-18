@@ -32,6 +32,8 @@ okhttp = "4.12.0"
 
 # 序列化（§4.5 类型安全路由需要）
 kotlinxSerialization = "1.11.0"
+# core library desugaring（minSdk 24 + java.time，2.10 lint 实测）
+desugarJdkLibs = "2.1.4"
 
 # 测试
 junit = "4.13.2"
@@ -74,6 +76,7 @@ retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = 
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 
 # 测试
 junit = { group = "junit", name = "junit", version.ref = "junit" }

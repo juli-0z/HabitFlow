@@ -12,6 +12,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // TestDataFactory 用 java.time（minSdk 24）需要 desugaring（2.10 lint 实测）
+        isCoreLibraryDesugaringEnabled = true
     }
 }
 
@@ -23,6 +25,7 @@ kotlin {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)   // TestDataFactory 用 LocalDate（2.10 lint 实测）
     implementation(project(":core:model"))   // TestDataFactory 生成 model 测试数据（§3.2 单向：testing -> model）
     implementation(libs.junit)
     implementation(libs.kotlinx.coroutines.test)

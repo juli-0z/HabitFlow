@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - name: Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml') }}
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest
+      - name: Lint
+        run: ./gradlew lintDebug
+      - name: Assemble
+        run: ./gradlew assembleDebug
+      # instrumented job（emulator 跑 connectedDebugAndroidTest）归属任务 2.12，
+      # 本轮不纳入以避免阻塞 CI 首绿（TECH_DESIGN §9.1 注释同精神）

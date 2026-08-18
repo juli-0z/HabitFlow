@@ -25,6 +25,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // minSdk 24 使用 java.time（LocalDate）需要 core library desugaring（2.10 lint 实测）
+        isCoreLibraryDesugaringEnabled = true
     }
 }
 
@@ -36,6 +38,7 @@ kotlin {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)   // java.time 脱糖（minSdk 24，HomeViewModel 用 LocalDate）
     implementation(project(":core:model"))          // feature 直接使用 model 类型（UiState/HabitListItem）
     implementation(project(":core:domain"))         // HabitValidator 校验（§5.1，§3.3 模板缺口补齐）
     implementation(project(":core:data"))
