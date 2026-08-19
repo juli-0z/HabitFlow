@@ -29,6 +29,11 @@ android {
     buildTypes {
         release {
             optimization { enable = true } // AGP 9 DSL：替代 isMinifyEnabled + isShrinkResources
+            // 显式引用默认规则 + 项目规则（§3.5，proguard-rules.pro 前置项落地）
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
     compileOptions {
