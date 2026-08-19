@@ -34,4 +34,6 @@ dependencies {
     implementation(libs.okhttp.logging)   // HttpLoggingInterceptor（仅 debug，§7.1）
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    // 空测试 APK 的 instrumentation 也需要 runner（2.12 全量实测）
+    androidTestImplementation(libs.androidx.test.runner)
 }

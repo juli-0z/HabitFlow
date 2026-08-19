@@ -32,4 +32,6 @@ dependencies {
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.lifecycle.viewmodel.ktx)        // §4.4 BaseViewModel（viewModelScope）
     debugImplementation(libs.compose.ui.tooling)
+    // 空测试 APK 的 instrumentation 也需要 runner（2.12 全量实测）
+    androidTestImplementation(libs.androidx.test.runner)
 }

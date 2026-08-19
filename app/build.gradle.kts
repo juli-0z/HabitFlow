@@ -75,4 +75,6 @@ dependencies {
     // XML 启动主题 Theme.Material3.DayNight.NoActionBar 需要（§11.5 双轨主题）
     implementation(libs.material)
     testImplementation(libs.junit)
+    // 空测试 APK 的 instrumentation 也需要 runner（2.12 全量实测）
+    androidTestImplementation(libs.androidx.test.runner)
 }

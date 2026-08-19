@@ -29,4 +29,6 @@ dependencies {
     implementation(project(":core:model"))   // TestDataFactory 生成 model 测试数据（§3.2 单向：testing -> model）
     implementation(libs.junit)
     implementation(libs.kotlinx.coroutines.test)
+    // 空测试 APK 的 instrumentation 也需要 runner（2.12 全量实测）
+    androidTestImplementation(libs.androidx.test.runner)
 }
