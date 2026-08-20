@@ -5,6 +5,11 @@ on:
   push:
     branches: [master]
 
+# 并发取消：连续 push 时取消旧 run（不再干等 ~16min）；workflow 名 CI 与 Release 隔离，tag 触发不受影响（建议 1，§9.1）
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
