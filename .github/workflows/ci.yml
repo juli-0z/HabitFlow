@@ -38,7 +38,7 @@ jobs:
         run: chmod +x gradlew   # 修复：instrumented job 缺此步导致 Permission denied（run 32266737466 实测）
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
-      - uses: reactivecircus/android-emulator-runner@v2
+      - uses: reactivecircus/android-emulator-runner@v3
         with:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
