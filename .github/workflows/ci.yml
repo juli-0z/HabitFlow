@@ -43,6 +43,14 @@ jobs:
         run: chmod +x gradlew   # 修复：instrumented job 缺此步导致 Permission denied（run 32266737466 实测）
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
+      - name: Enable KVM permissions
+        # 修复：ProbeKVM 无权限（run 32394658855：permissions to use KVM (/dev/kvm)）→ 软件模拟极慢
+        # → ddmlib 属性读取超时（ShellCommandUnresponsiveException）→ 设备被跳过；授予读写并验证，失败即退出
+        run: |
+          ls -l /dev/kvm
+          sudo chmod 666 /dev/kvm
+          ls -l /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
       - uses: reactivecircus/android-emulator-runner@v2   # 恢复 v2：v3 标签不存在（run 32361742157 实测无法解析）
         with:
           api-level: ${{ matrix.api-level }}
