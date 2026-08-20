@@ -31,14 +31,14 @@ jobs:
     needs: build
     timeout-minutes: 30   # emulator 镜像下载 + 测试首次可能较慢（2.12 合理增补）
     strategy:
-      matrix: { api-level: [30] }   # 一条即可，覆盖 Android 11
+      matrix: { api-level: [34] }   # 34 规避 v2 在 API 30 镜像的 UTP API level 读取 bug（API level=1，run 32359568752 实测）
     steps:
       - uses: actions/checkout@v4
       - name: Make gradlew executable
         run: chmod +x gradlew   # 修复：instrumented job 缺此步导致 Permission denied（run 32266737466 实测）
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
-      - uses: reactivecircus/android-emulator-runner@v3
+      - uses: reactivecircus/android-emulator-runner@v2   # 恢复 v2：v3 标签不存在（run 32361742157 实测无法解析）
         with:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
