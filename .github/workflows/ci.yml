@@ -42,4 +42,4 @@ jobs:
         with:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
-          script: ./gradlew connectedDebugAndroidTest
+          script: adb shell getprop ro.build.version.sdk && ./gradlew connectedDebugAndroidTest   # 预热设备属性，修复 PropertyFetcher 超时（run 32371966583：Shell CommandUnresponsiveException，设备被跳过）
