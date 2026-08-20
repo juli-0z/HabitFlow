@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [master]
+    branches: [master, 'ci-debug/**']   # ci-debug 分支：instrumented 修复链先验证再合入 master（建议 2，§9.1）
 
 # 并发取消：连续 push 时取消旧 run（不再干等 ~16min）；workflow 名 CI 与 Release 隔离，tag 触发不受影响（建议 1，§9.1）
 concurrency:
