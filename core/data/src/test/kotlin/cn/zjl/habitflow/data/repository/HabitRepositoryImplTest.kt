@@ -198,4 +198,17 @@ class HabitRepositoryImplTest {
 
             coVerify(exactly = 1) { dao.deleteRecord(11L, date.toEpochDay()) }
         }
+
+    @Test
+    fun `countCheckInsBetween maps dates to epochDay`() =
+        runTest {
+            val start = LocalDate.of(2026, 8, 17)
+            val end = LocalDate.of(2026, 8, 23)
+            coEvery { dao.countRecordsBetween(11L, start.toEpochDay(), end.toEpochDay()) } returns 4
+
+            val count = repository.countCheckInsBetween(11L, start, end)
+
+            assertEquals(4, count)
+            coVerify(exactly = 1) { dao.countRecordsBetween(11L, start.toEpochDay(), end.toEpochDay()) }
+        }
 }

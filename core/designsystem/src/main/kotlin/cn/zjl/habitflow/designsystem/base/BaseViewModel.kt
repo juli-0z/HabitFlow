@@ -41,6 +41,11 @@ abstract class BaseViewModel : ViewModel() {
     private fun defaultErrorHandler(e: Exception) {
         _events.trySend(BaseEvent.ShowError(e.toUserMessage()))
     }
+
+    /** 子类发射一次性事件的标准封装（§4.4：事件通道集中在此）；trySend 满时不阻塞 */
+    protected fun emitEvent(event: BaseEvent) {
+        _events.trySend(event)
+    }
 }
 
 /** 全局一次性事件（页面级事件继承扩展，如 HomeUiEvent : BaseEvent 或独立定义） */

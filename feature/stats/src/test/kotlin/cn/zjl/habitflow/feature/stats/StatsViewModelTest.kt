@@ -31,10 +31,13 @@ class StatsViewModelTest {
     private fun habit(
         id: Long = 1,
         name: String = "晨跑",
+        frequency: Frequency = Frequency.DAILY,
+        targetPerWeek: Int = 0,
     ) = Habit(
         id = id,
         name = name,
-        frequency = Frequency.DAILY,
+        frequency = frequency,
+        targetPerWeek = targetPerWeek,
         createdAt = 0L,
     )
 
@@ -98,6 +101,24 @@ class StatsViewModelTest {
 
             assertEquals(false, viewModel.uiState.value.isLoading)
             assertEquals("db broken", viewModel.uiState.value.errorMessage)
+        }
+
+    @Test
+    fun `weekly completion rate uses target per week as denominator`() =
+        runTest {
+            // 近 7 天（offset 53..59）打卡 3 次；WEEKLY targetPerWeek=3 -> 完成率 = 3 / (3×1) = 1.0（封顶）
+            val trueOffsets = setOf(57, 58, 59)
+            coEvery { repository.observeHabits() } returns
+                flowOf(listOf(habit(id = 1, name = "阅读", frequency = Frequency.WEEKLY, targetPerWeek = 3)))
+            coEvery { repository.observeCompletionStats(1L, any()) } returns flowOf(completionWindow(trueOffsets))
+
+            val viewModel = StatsViewModel(repository)
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+            val item =
+                viewModel.uiState.value.stats
+                    .single()
+            assertEquals(1.0, item.stats.sevenDayCompletionRate, 1e-9)
         }
 
     @Test

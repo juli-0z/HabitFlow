@@ -5,6 +5,7 @@ import cn.zjl.habitflow.data.repository.HabitRepository
 import cn.zjl.habitflow.designsystem.base.BaseViewModel
 import cn.zjl.habitflow.designsystem.base.toUserMessage
 import cn.zjl.habitflow.domain.StreakCalculator
+import cn.zjl.habitflow.model.Frequency
 import cn.zjl.habitflow.model.Habit
 import cn.zjl.habitflow.model.StreakStats
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -68,7 +69,7 @@ class StatsViewModel
                 val pairs = values.toList()
                 val stats =
                     pairs.map { (habit, days) ->
-                        HabitStats(habit = habit, stats = computeStats(days, today))
+                        HabitStats(habit = habit, stats = computeStats(days, today, habit))
                     }
                 stats to aggregateHeatmap(pairs.map { it.second }, today)
             }
@@ -96,6 +97,7 @@ class StatsViewModel
         private fun computeStats(
             days: List<Pair<LocalDate, Boolean>>,
             today: LocalDate,
+            habit: Habit,
         ): StreakStats {
             val records = days.toMap()
             // longestStreak 契约：只传已打卡日期（keys 视为打卡日，§5.3），未打卡日必须剔除
@@ -103,13 +105,32 @@ class StatsViewModel
             return StreakStats(
                 currentStreak = StreakCalculator.currentStreak(records, today),
                 longestStreak = StreakCalculator.longestStreak(checkedDates.associateWith { true }),
-                sevenDayCompletionRate = completionRate(days.takeLast(7)),
-                thirtyDayCompletionRate = completionRate(days.takeLast(30)),
+                sevenDayCompletionRate = completionRate(days.takeLast(7), habit),
+                thirtyDayCompletionRate = completionRate(days.takeLast(30), habit),
             )
         }
 
-        private fun completionRate(window: List<Pair<LocalDate, Boolean>>): Double =
-            if (window.isEmpty()) 0.0 else window.count { it.second }.toDouble() / window.size
+        /**
+         * 完成率（M3 3.7：区分频率）。
+         * DAILY：分母 = 窗口天数（每天应打卡）；
+         * WEEKLY：分母 = targetPerWeek × 窗口折合周数（每周目标 targetPerWeek 次），完成率封顶 1.0。
+         */
+        private fun completionRate(
+            window: List<Pair<LocalDate, Boolean>>,
+            habit: Habit,
+        ): Double {
+            if (window.isEmpty()) return 0.0
+            val checked = window.count { it.second }.toDouble()
+            val target =
+                when (habit.frequency) {
+                    Frequency.DAILY -> window.size.toDouble()
+                    Frequency.WEEKLY -> {
+                        val weeks = window.size / 7.0
+                        (habit.targetPerWeek * weeks).coerceAtLeast(1.0)
+                    }
+                }
+            return (checked / target).coerceAtMost(1.0)
+        }
 
         private companion object {
             /** 统计查询窗口：覆盖 30 天完成率 + 足够长的最长连续（与首页连续窗口 60 一致，MVP 取舍） */

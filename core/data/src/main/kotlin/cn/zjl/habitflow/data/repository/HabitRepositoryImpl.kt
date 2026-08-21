@@ -64,6 +64,12 @@ class HabitRepositoryImpl
             habitId: Long,
             date: LocalDate,
         ) = habitDao.deleteRecord(habitId, date.toEpochDay())
+
+        override suspend fun countCheckInsBetween(
+            habitId: Long,
+            startDate: LocalDate,
+            endDate: LocalDate,
+        ): Int = habitDao.countRecordsBetween(habitId, startDate.toEpochDay(), endDate.toEpochDay())
     }
 
 private fun HabitEntity.toModel() =

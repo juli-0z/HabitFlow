@@ -40,4 +40,11 @@ interface HabitRepository {
         habitId: Long,
         date: LocalDate,
     )
+
+    /** 统计日期范围内的打卡天数（M3 3.7：WEEKLY 型本周上限校验） */
+    suspend fun countCheckInsBetween(
+        habitId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): Int
 }

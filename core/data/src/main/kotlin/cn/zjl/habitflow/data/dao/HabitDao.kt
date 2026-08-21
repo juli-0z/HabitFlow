@@ -63,4 +63,12 @@ interface HabitDao {
         startDate: Long,
         endDate: Long,
     ): Flow<List<HabitRecordEntity>>
+
+    /** 统计指定日期范围内的打卡天数（M3 3.7：WEEKLY 型本周上限校验） */
+    @Query("SELECT COUNT(*) FROM habit_record WHERE habit_id = :habitId AND date BETWEEN :startDate AND :endDate")
+    suspend fun countRecordsBetween(
+        habitId: Long,
+        startDate: Long,
+        endDate: Long,
+    ): Int
 }

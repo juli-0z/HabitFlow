@@ -229,7 +229,10 @@ class HomeViewModelTest {
     @Test
     fun `check in failure emits error event`() =
         runTest {
-            coEvery { repository.observeHabits() } returns flowOf(emptyList<Habit>())
+            val habit = TestDataFactory.habit(id = 1, name = "晨跑")
+            coEvery { repository.observeHabits() } returns flowOf(listOf(habit))
+            coEvery { repository.observeChecked(1L, any()) } returns flowOf(false)
+            coEvery { repository.observeCompletionStats(1L, any()) } returns flowOf(emptyList())
             coEvery { repository.checkIn(any(), any()) } throws IllegalStateException("db broken")
             val viewModel = HomeViewModel(repository)
             mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
@@ -341,5 +344,45 @@ class HomeViewModelTest {
 
             assertEquals(emptySet<Long>(), viewModel.uiState.value.checkedHabitIds)
             assertEquals(0, viewModel.uiState.value.streaks[1L])
+        }
+
+    // ---- M3 3.7 WEEKLY 上限拦截（§5.1/§5.2：本周已达 targetPerWeek 禁止再打）----
+
+    @Test
+    fun `weekly check in blocked when limit reached`() =
+        runTest {
+            val habit = TestDataFactory.habit(id = 1, name = "阅读", frequency = Frequency.WEEKLY, targetPerWeek = 3)
+            coEvery { repository.observeHabits() } returns flowOf(listOf(habit))
+            coEvery { repository.observeChecked(1L, any()) } returns flowOf(false)
+            coEvery { repository.observeCompletionStats(1L, any()) } returns flowOf(emptyList())
+            coEvery { repository.countCheckInsBetween(any(), any(), any()) } returns 3
+            val viewModel = HomeViewModel(repository)
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.events.test {
+                viewModel.onCheckIn(1L)
+                mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+                val event = awaitItem()
+                assertTrue(event is BaseEvent.ShowError)
+            }
+            coVerify(exactly = 0) { repository.checkIn(any(), any()) }
+        }
+
+    @Test
+    fun `daily check in skips weekly limit check`() =
+        runTest {
+            val habit = TestDataFactory.habit(id = 1, name = "晨跑")
+            coEvery { repository.observeHabits() } returns flowOf(listOf(habit))
+            coEvery { repository.observeChecked(1L, any()) } returns flowOf(false)
+            coEvery { repository.observeCompletionStats(1L, any()) } returns flowOf(emptyList())
+            coEvery { repository.checkIn(any(), any()) } returns Unit
+            val viewModel = HomeViewModel(repository)
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.onCheckIn(1L)
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+            coVerify(exactly = 1) { repository.checkIn(1L, any()) }
+            coVerify(exactly = 0) { repository.countCheckInsBetween(any(), any(), any()) }
         }
 }

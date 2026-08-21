@@ -2,6 +2,7 @@ package cn.zjl.habitflow.feature.home
 
 import androidx.lifecycle.viewModelScope
 import cn.zjl.habitflow.data.repository.HabitRepository
+import cn.zjl.habitflow.designsystem.base.BaseEvent
 import cn.zjl.habitflow.designsystem.base.BaseViewModel
 import cn.zjl.habitflow.designsystem.base.toUserMessage
 import cn.zjl.habitflow.domain.HabitValidator
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -153,8 +155,24 @@ class HomeViewModel
         }
         // ---- 打卡意图（2.4，§5.2：打卡 = 插入当日记录，撤销 = 删除当日记录）----
 
+        /**
+         * 打卡（含 M3 3.7：WEEKLY 型本周已达上限拦截）。
+         * DAILY 型直接打卡；WEEKLY 型先查本周（周一~周日）已打卡天数，达 targetPerWeek 上限
+         * 则发错误事件且不写库（验收"上限生效"）。
+         */
         fun onCheckIn(habitId: Long) {
+            val habit = _uiState.value.habits.find { it.id == habitId } ?: return
             launchTask(block = {
+                if (habit.frequency == Frequency.WEEKLY) {
+                    val today = LocalDate.now()
+                    val weekStart = today.with(DayOfWeek.MONDAY)
+                    val weekEnd = today.with(DayOfWeek.SUNDAY)
+                    val checkedThisWeek = habitRepository.countCheckInsBetween(habitId, weekStart, weekEnd)
+                    if (checkedThisWeek >= habit.targetPerWeek) {
+                        emitEvent(BaseEvent.ShowError("本周已完成 ${habit.targetPerWeek} 次，达到上限，不能再打卡"))
+                        return@launchTask
+                    }
+                }
                 habitRepository.checkIn(habitId, LocalDate.now())
             })
         }
