@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.okhttp)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk)           // Repository 映射单测（M3 3.9）
     testImplementation(libs.room.testing)  // 真库测试
     testImplementation(project(":core:testing"))
     // §8.2/§8.4：Room 真库测试在 androidTest（inMemory + ApplicationProvider）
