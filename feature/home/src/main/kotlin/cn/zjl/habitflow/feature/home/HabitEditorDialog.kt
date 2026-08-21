@@ -110,7 +110,7 @@ fun HabitEditorDialog(
         confirmButton = {
             TextButton(
                 onClick = { onSave(name, frequency, targetPerWeek, iconRes, colorHex) },
-                enabled = name.isNotBlank(),   // 验收：空名称禁点保存
+                enabled = name.isNotBlank(), // 验收：空名称禁点保存
             ) {
                 Text("保存")
             }
@@ -137,40 +137,41 @@ private fun IconPicker(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Row(
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState())
-                .padding(vertical = 4.dp),
+            modifier =
+                Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             HABIT_ICON_OPTIONS.forEach { option ->
                 val selected = option.key == selectedKey
                 Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (selected) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                            },
-                        )
-                        .border(
-                            width = if (selected) 2.dp else 0.dp,
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                            shape = CircleShape,
-                        )
-                        .clickable { onSelect(option.key) },
+                    modifier =
+                        Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (selected) {
+                                    MaterialTheme.colorScheme.primaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                },
+                            ).border(
+                                width = if (selected) 2.dp else 0.dp,
+                                color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                shape = CircleShape,
+                            ).clickable { onSelect(option.key) },
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = option.imageVector,
                         contentDescription = option.label,
-                        tint = if (selected) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
+                        tint =
+                            if (selected) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
                     )
                 }
             }
@@ -192,24 +193,25 @@ private fun ColorPicker(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Row(
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState())
-                .padding(vertical = 4.dp),
+            modifier =
+                Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             HABIT_COLOR_OPTIONS.forEach { hex ->
                 val selected = hex == selectedHex
                 Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(Color(android.graphics.Color.parseColor(hex)))
-                        .border(
-                            width = 2.dp,
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                            shape = CircleShape,
-                        )
-                        .clickable { onSelect(hex) },
+                    modifier =
+                        Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(Color(android.graphics.Color.parseColor(hex)))
+                            .border(
+                                width = 2.dp,
+                                color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                shape = CircleShape,
+                            ).clickable { onSelect(hex) },
                 )
             }
         }

@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.Flow
  */
 @Dao
 interface HabitDao {
-
     // ---- 习惯 CRUD（§5.1）----
 
     /** 新建/编辑共用（@Upsert：id=0 插入，id>0 更新）；返回 rowId */
@@ -40,11 +39,17 @@ interface HabitDao {
 
     /** 撤销打卡 = 删除当日记录 */
     @Query("DELETE FROM habit_record WHERE habit_id = :habitId AND date = :date")
-    suspend fun deleteRecord(habitId: Long, date: Long)
+    suspend fun deleteRecord(
+        habitId: Long,
+        date: Long,
+    )
 
     /** 当日"是否已打卡"，Flow 响应式自动刷新 */
     @Query("SELECT EXISTS(SELECT 1 FROM habit_record WHERE habit_id = :habitId AND date = :date)")
-    fun observeChecked(habitId: Long, date: Long): Flow<Boolean>
+    fun observeChecked(
+        habitId: Long,
+        date: Long,
+    ): Flow<Boolean>
 
     // ---- 统计（§5.4 / §6.1 组合查询）----
 
@@ -53,5 +58,9 @@ interface HabitDao {
     fun observeHabitsWithRecords(): Flow<List<HabitWithRecords>>
 
     @Query("SELECT * FROM habit_record WHERE habit_id = :habitId AND date BETWEEN :startDate AND :endDate")
-    fun observeRecordsBetween(habitId: Long, startDate: Long, endDate: Long): Flow<List<HabitRecordEntity>>
+    fun observeRecordsBetween(
+        habitId: Long,
+        startDate: Long,
+        endDate: Long,
+    ): Flow<List<HabitRecordEntity>>
 }

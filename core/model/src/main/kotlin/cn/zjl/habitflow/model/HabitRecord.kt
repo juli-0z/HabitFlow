@@ -13,7 +13,7 @@ data class HabitRecord(
     val id: Long = 0,
     val habitId: Long,
     val date: LocalDate,
-    val completedAt: Long,           // 打卡时间戳（epochMillis）
+    val completedAt: Long, // 打卡时间戳（epochMillis）
     val isExcused: Boolean = false,
     val note: String? = null,
 )

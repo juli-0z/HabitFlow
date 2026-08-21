@@ -9,4 +9,12 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false   // §4.5 类型安全路由
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.hilt) apply false
+    alias(libs.plugins.ktlint) apply false   // 代码规范自检（3.11）
+}
+
+// ktlint 统一应用于全部 10 个子模块（含纯 Kotlin 的 :core:model/:core:domain），
+// 检查所有 *.kt 源码与测试；根级统一配置，各模块无差异化需求（3.11，§3.3）
+// 注：backing-property/function-naming 豁免见 .editorconfig（3.11 实测结论）
+subprojects {
+    apply(plugin = "org.jlleitschuh.gradle.ktlint")
 }

@@ -10,8 +10,16 @@ plugins {
 
 android {
     namespace = "cn.zjl.habitflow.feature.settings"
-    compileSdk = libs.versions.compileSdk.get().toInt()
-    defaultConfig { minSdk = libs.versions.minSdk.get().toInt() }
+    compileSdk =
+        libs.versions.compileSdk
+            .get()
+            .toInt()
+    defaultConfig {
+        minSdk =
+            libs.versions.minSdk
+                .get()
+                .toInt()
+    }
     buildFeatures { compose = true }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -29,7 +37,7 @@ kotlin {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.desugar.jdk.libs)   // 与 :core:data 同步（AAR 元数据要求，2.12 实测）
+    coreLibraryDesugaring(libs.desugar.jdk.libs) // 与 :core:data 同步（AAR 元数据要求，2.12 实测）
     implementation(project(":core:data"))
     implementation(project(":core:designsystem"))
     // §3.3 feature 模板未列 compose 依赖，feature 直接写 Compose UI 需要（构建实测补齐）

@@ -21,62 +21,66 @@ import org.junit.Test
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
-
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
     private val dataSource = mockk<SettingsDataSource>()
 
     @Test
-    fun `dark mode state follows data store`() = runTest {
-        every { dataSource.isDarkMode } returns flowOf(true)
+    fun `dark mode state follows data store`() =
+        runTest {
+            every { dataSource.isDarkMode } returns flowOf(true)
 
-        val viewModel = SettingsViewModel(dataSource)
-        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+            val viewModel = SettingsViewModel(dataSource)
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(true, viewModel.uiState.value.isDarkMode)
-    }
+            assertEquals(true, viewModel.uiState.value.isDarkMode)
+        }
 
     @Test
-    fun `toggle updates state and persists via setDarkMode`() = runTest {
-        every { dataSource.isDarkMode } returns flowOf(false)
-        coEvery { dataSource.setDarkMode(any()) } returns Unit
+    fun `toggle updates state and persists via setDarkMode`() =
+        runTest {
+            every { dataSource.isDarkMode } returns flowOf(false)
+            coEvery { dataSource.setDarkMode(any()) } returns Unit
 
-        val viewModel = SettingsViewModel(dataSource)
-        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+            val viewModel = SettingsViewModel(dataSource)
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
 
-        viewModel.onDarkModeChange(true)
-        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+            viewModel.onDarkModeChange(true)
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(true, viewModel.uiState.value.isDarkMode)
-        coVerify(exactly = 1) { dataSource.setDarkMode(true) }
-    }
+            assertEquals(true, viewModel.uiState.value.isDarkMode)
+            coVerify(exactly = 1) { dataSource.setDarkMode(true) }
+        }
 
     // ---- M3 3.10 三态：Loading 过渡 / 错误兜底 ----
 
     @Test
-    fun `loading resolves after data store emission`() = runTest {
-        every { dataSource.isDarkMode } returns flowOf(false)
+    fun `loading resolves after data store emission`() =
+        runTest {
+            every { dataSource.isDarkMode } returns flowOf(false)
 
-        val viewModel = SettingsViewModel(dataSource)
+            val viewModel = SettingsViewModel(dataSource)
 
-        assertEquals(true, viewModel.uiState.value.isLoading)   // 初始 Loading（3.10）
-        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+            assertEquals(true, viewModel.uiState.value.isLoading) // 初始 Loading（3.10）
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(false, viewModel.uiState.value.isLoading)
-        assertEquals(null as String?, viewModel.uiState.value.errorMessage)
-    }
-
-    @Test
-    fun `data store error exposes error message`() = runTest {
-        every { dataSource.isDarkMode } returns flow {
-            throw IllegalStateException("datastore broken")
+            assertEquals(false, viewModel.uiState.value.isLoading)
+            assertEquals(null as String?, viewModel.uiState.value.errorMessage)
         }
 
-        val viewModel = SettingsViewModel(dataSource)
-        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+    @Test
+    fun `data store error exposes error message`() =
+        runTest {
+            every { dataSource.isDarkMode } returns
+                flow {
+                    throw IllegalStateException("datastore broken")
+                }
 
-        assertEquals(false, viewModel.uiState.value.isLoading)
-        assertEquals("datastore broken", viewModel.uiState.value.errorMessage)
-    }
+            val viewModel = SettingsViewModel(dataSource)
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(false, viewModel.uiState.value.isLoading)
+            assertEquals("datastore broken", viewModel.uiState.value.errorMessage)
+        }
 }

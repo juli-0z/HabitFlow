@@ -15,7 +15,6 @@ import java.time.temporal.ChronoUnit
  * - 连续性判断使用 LocalDate.plusDays/minusDays，天然支持跨月/跨年，不依赖月份/年份逻辑。
  */
 object StreakCalculator {
-
     fun currentStreak(
         records: Map<LocalDate, Boolean>,
         today: LocalDate,
@@ -48,14 +47,15 @@ object StreakCalculator {
         var current = 0
         var prev: LocalDate? = null
         for (date in records.keys.sorted()) {
-            current = if (prev == null) {
-                1
-            } else {
-                val gap = ChronoUnit.DAYS.between(prev, date)
-                // 相邻打卡日间隔 1 天，或间隔中的每一天都是豁免日（桥接）-> 连续
-                val gapAllExcused = (1L until gap).all { prev.plusDays(it) in excusedDates }
-                if (gap == 1L || gapAllExcused) current + 1 else 1
-            }
+            current =
+                if (prev == null) {
+                    1
+                } else {
+                    val gap = ChronoUnit.DAYS.between(prev, date)
+                    // 相邻打卡日间隔 1 天，或间隔中的每一天都是豁免日（桥接）-> 连续
+                    val gapAllExcused = (1L until gap).all { prev.plusDays(it) in excusedDates }
+                    if (gap == 1L || gapAllExcused) current + 1 else 1
+                }
             max = maxOf(max, current)
             prev = date
         }

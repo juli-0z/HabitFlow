@@ -30,27 +30,35 @@ data class HabitIconOption(
     val label: String,
 )
 
-val HABIT_ICON_OPTIONS = listOf(
-    HabitIconOption("star", Icons.Filled.Star, "星星"),
-    HabitIconOption("favorite", Icons.Filled.Favorite, "爱心"),
-    HabitIconOption("checkin", Icons.Filled.CheckCircle, "打卡"),
-    HabitIconOption("reminder", Icons.Filled.Notifications, "提醒"),
-    HabitIconOption("skill", Icons.Filled.Build, "技能"),
-    HabitIconOption("self", Icons.Filled.Face, "自我"),
-    HabitIconOption("location", Icons.Filled.Place, "地点"),
-    HabitIconOption("shopping", Icons.Filled.ShoppingCart, "购物"),
-    HabitIconOption("home", Icons.Filled.Home, "家务"),
-    HabitIconOption("schedule", Icons.Filled.DateRange, "日程"),
-)
+val HABIT_ICON_OPTIONS =
+    listOf(
+        HabitIconOption("star", Icons.Filled.Star, "星星"),
+        HabitIconOption("favorite", Icons.Filled.Favorite, "爱心"),
+        HabitIconOption("checkin", Icons.Filled.CheckCircle, "打卡"),
+        HabitIconOption("reminder", Icons.Filled.Notifications, "提醒"),
+        HabitIconOption("skill", Icons.Filled.Build, "技能"),
+        HabitIconOption("self", Icons.Filled.Face, "自我"),
+        HabitIconOption("location", Icons.Filled.Place, "地点"),
+        HabitIconOption("shopping", Icons.Filled.ShoppingCart, "购物"),
+        HabitIconOption("home", Icons.Filled.Home, "家务"),
+        HabitIconOption("schedule", Icons.Filled.DateRange, "日程"),
+    )
 
-val HABIT_COLOR_OPTIONS = listOf(
-    "#2E7D32", "#1565C0", "#C62828", "#F9A825",
-    "#6A1B9A", "#00838F", "#AD1457", "#EF6C00", "#37474F",
-)
+val HABIT_COLOR_OPTIONS =
+    listOf(
+        "#2E7D32",
+        "#1565C0",
+        "#C62828",
+        "#F9A825",
+        "#6A1B9A",
+        "#00838F",
+        "#AD1457",
+        "#EF6C00",
+        "#37474F",
+    )
 
 /** key -> ImageVector；未知/空 key 回退到 [Icons.Filled.Star] */
-fun iconFromString(key: String?): ImageVector =
-    HABIT_ICON_OPTIONS.firstOrNull { it.key == key }?.imageVector ?: Icons.Filled.Star
+fun iconFromString(key: String?): ImageVector = HABIT_ICON_OPTIONS.firstOrNull { it.key == key }?.imageVector ?: Icons.Filled.Star
 
 /**
  * hex -> Color；空或非法值返回 null，调用方再决定回退（如主题 primary）。

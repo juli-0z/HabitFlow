@@ -13,10 +13,10 @@ import cn.zjl.habitflow.model.Frequency
 data class HabitEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
-    val frequency: Frequency,        // DAILY / WEEKLY
-    val targetPerWeek: Int = 0,      // WEEKLY 时有效
-    val iconRes: String? = null,     // 存资源名而非资源 id
-    val colorHex: String = "",       // 同上，存字符串
+    val frequency: Frequency, // DAILY / WEEKLY
+    val targetPerWeek: Int = 0, // WEEKLY 时有效
+    val iconRes: String? = null, // 存资源名而非资源 id
+    val colorHex: String = "", // 同上，存字符串
     val isArchived: Boolean = false,
     val createdAt: Long,
 )

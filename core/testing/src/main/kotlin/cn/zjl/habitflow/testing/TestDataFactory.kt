@@ -12,7 +12,6 @@ import java.time.LocalDate
  * 只覆盖被测场景所需的字段（2.7 ViewModel 测试、3.9 Repository 映射测试等）。
  */
 object TestDataFactory {
-
     fun habit(
         id: Long = 0,
         name: String = "晨跑",
@@ -22,16 +21,17 @@ object TestDataFactory {
         colorHex: String = "FF2E7D32",
         isArchived: Boolean = false,
         createdAt: Long = DEFAULT_TIMESTAMP,
-    ): Habit = Habit(
-        id = id,
-        name = name,
-        frequency = frequency,
-        targetPerWeek = targetPerWeek,
-        iconRes = iconRes,
-        colorHex = colorHex,
-        isArchived = isArchived,
-        createdAt = createdAt,
-    )
+    ): Habit =
+        Habit(
+            id = id,
+            name = name,
+            frequency = frequency,
+            targetPerWeek = targetPerWeek,
+            iconRes = iconRes,
+            colorHex = colorHex,
+            isArchived = isArchived,
+            createdAt = createdAt,
+        )
 
     fun habitRecord(
         id: Long = 0,
@@ -40,14 +40,15 @@ object TestDataFactory {
         completedAt: Long = DEFAULT_TIMESTAMP,
         isExcused: Boolean = false,
         note: String? = null,
-    ): HabitRecord = HabitRecord(
-        id = id,
-        habitId = habitId,
-        date = date,
-        completedAt = completedAt,
-        isExcused = isExcused,
-        note = note,
-    )
+    ): HabitRecord =
+        HabitRecord(
+            id = id,
+            habitId = habitId,
+            date = date,
+            completedAt = completedAt,
+            isExcused = isExcused,
+            note = note,
+        )
 
     private val DEFAULT_DATE: LocalDate = LocalDate.of(2026, 8, 13)
 

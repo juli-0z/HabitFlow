@@ -27,7 +27,7 @@ import androidx.room.PrimaryKey
 data class HabitRecordEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     @ColumnInfo(name = "habit_id") val habitId: Long,
-    val date: Long,                  // epochDay
-    val completedAt: Long,           // 打卡时间戳（epochMillis）
+    val date: Long, // epochDay
+    val completedAt: Long, // 打卡时间戳（epochMillis）
     val isExcused: Boolean = false,
 )

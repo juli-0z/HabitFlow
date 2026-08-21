@@ -10,8 +10,16 @@ plugins {
 
 android {
     namespace = "cn.zjl.habitflow.feature.stats"
-    compileSdk = libs.versions.compileSdk.get().toInt()
-    defaultConfig { minSdk = libs.versions.minSdk.get().toInt() }
+    compileSdk =
+        libs.versions.compileSdk
+            .get()
+            .toInt()
+    defaultConfig {
+        minSdk =
+            libs.versions.minSdk
+                .get()
+                .toInt()
+    }
     buildFeatures { compose = true }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -23,10 +31,11 @@ android {
     // 3.4 引入 stats androidTest 后补齐——缺失会导致 mergeDebugAndroidTestJavaResource 重复文件失败）
     packaging {
         resources {
-            excludes += setOf(
-                "META-INF/LICENSE*",
-                "META-INF/NOTICE*",
-            )
+            excludes +=
+                setOf(
+                    "META-INF/LICENSE*",
+                    "META-INF/NOTICE*",
+                )
         }
     }
 }
@@ -39,10 +48,10 @@ kotlin {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.desugar.jdk.libs)   // 与 :core:data 同步（AAR 元数据要求，2.12 实测）
-    implementation(project(":core:model"))          // Habit/StreakStats 类型（§3.3 feature 模板）
+    coreLibraryDesugaring(libs.desugar.jdk.libs) // 与 :core:data 同步（AAR 元数据要求，2.12 实测）
+    implementation(project(":core:model")) // Habit/StreakStats 类型（§3.3 feature 模板）
     implementation(project(":core:data"))
-    implementation(project(":core:domain"))          // StreakCalculator 统计计算（M3 3.4）
+    implementation(project(":core:domain")) // StreakCalculator 统计计算（M3 3.4）
     implementation(project(":core:designsystem"))
     // §3.3 feature 模板未列 compose 依赖，feature 直接写 Compose UI 需要（构建实测补齐）
     implementation(platform(libs.androidx.compose.bom))
@@ -59,8 +68,8 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(project(":core:testing"))
     androidTestImplementation(libs.compose.ui.test.junit4)
-    androidTestImplementation(libs.mockk.android)   // fake VM 直构（§8.3，仪器测试须用 mockk-android）
-    androidTestImplementation(libs.androidx.junit)   // AndroidJUnit4（ext-junit 不传递 runner，§8.3 依赖清单）
+    androidTestImplementation(libs.mockk.android) // fake VM 直构（§8.3，仪器测试须用 mockk-android）
+    androidTestImplementation(libs.androidx.junit) // AndroidJUnit4（ext-junit 不传递 runner，§8.3 依赖清单）
     androidTestImplementation(libs.androidx.test.runner)
     debugImplementation(libs.compose.ui.test.manifest)
 }

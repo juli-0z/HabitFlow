@@ -14,15 +14,17 @@ private val GreenSecondaryDark = Color(0xFFA5D6A7)
 private val GreenTertiaryDark = Color(0xFF4DB6AC)
 
 /** 浅色 ColorScheme（Material3 lightColorScheme 派生） */
-val LightColorScheme = lightColorScheme(
-    primary = GreenPrimary,
-    secondary = GreenSecondary,
-    tertiary = GreenTertiary,
-)
+val LightColorScheme =
+    lightColorScheme(
+        primary = GreenPrimary,
+        secondary = GreenSecondary,
+        tertiary = GreenTertiary,
+    )
 
 /** 深色 ColorScheme（Material3 darkColorScheme 派生） */
-val DarkColorScheme = darkColorScheme(
-    primary = GreenPrimaryDark,
-    secondary = GreenSecondaryDark,
-    tertiary = GreenTertiaryDark,
-)
+val DarkColorScheme =
+    darkColorScheme(
+        primary = GreenPrimaryDark,
+        secondary = GreenSecondaryDark,
+        tertiary = GreenTertiaryDark,
+    )

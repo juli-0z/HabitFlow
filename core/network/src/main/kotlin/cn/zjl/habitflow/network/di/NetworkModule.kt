@@ -5,9 +5,9 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
+import javax.inject.Singleton
 
 /**
  * 网络层装配（TECH_DESIGN_v1.1 §7.1）
@@ -16,14 +16,14 @@ import retrofit2.Retrofit
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(retrofitClient: RetrofitClient): OkHttpClient = retrofitClient.buildOkHttpClient()
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(retrofitClient: RetrofitClient): OkHttpClient =
-        retrofitClient.buildOkHttpClient()
-
-    @Provides
-    @Singleton
-    fun provideRetrofit(retrofitClient: RetrofitClient, okHttpClient: OkHttpClient): Retrofit =
-        retrofitClient.buildRetrofit(okHttpClient)
+    fun provideRetrofit(
+        retrofitClient: RetrofitClient,
+        okHttpClient: OkHttpClient,
+    ): Retrofit = retrofitClient.buildRetrofit(okHttpClient)
 }

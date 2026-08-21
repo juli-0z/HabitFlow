@@ -47,25 +47,28 @@ fun HomeScreen(
     ) { innerPadding ->
         when {
             uiState.isLoading -> LoadingView(modifier = Modifier.padding(innerPadding))
-            uiState.errorMessage != null -> ErrorView(
-                modifier = Modifier.padding(innerPadding),
-                message = uiState.errorMessage.orEmpty(),
-            )
-            uiState.habits.isEmpty() -> EmptyView(
-                modifier = Modifier.padding(innerPadding),
-                title = "暂无习惯",
-                subtitle = "点击右下角 + 创建第一个习惯",
-            )
-            else -> HabitList(
-                habits = uiState.habits,
-                checkedHabitIds = uiState.checkedHabitIds,
-                streaks = uiState.streaks,
-                onCheckIn = viewModel::onCheckIn,
-                onCheckOut = viewModel::onCheckOut,
-                onEdit = viewModel::onShowEditDialog,
-                onRequestDelete = viewModel::onRequestDelete,
-                modifier = Modifier.padding(innerPadding),
-            )
+            uiState.errorMessage != null ->
+                ErrorView(
+                    modifier = Modifier.padding(innerPadding),
+                    message = uiState.errorMessage.orEmpty(),
+                )
+            uiState.habits.isEmpty() ->
+                EmptyView(
+                    modifier = Modifier.padding(innerPadding),
+                    title = "暂无习惯",
+                    subtitle = "点击右下角 + 创建第一个习惯",
+                )
+            else ->
+                HabitList(
+                    habits = uiState.habits,
+                    checkedHabitIds = uiState.checkedHabitIds,
+                    streaks = uiState.streaks,
+                    onCheckIn = viewModel::onCheckIn,
+                    onCheckOut = viewModel::onCheckOut,
+                    onEdit = viewModel::onShowEditDialog,
+                    onRequestDelete = viewModel::onRequestDelete,
+                    modifier = Modifier.padding(innerPadding),
+                )
         }
     }
 
@@ -147,9 +150,10 @@ private fun SectionHeader(
         text = text,
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
     )
 }
 

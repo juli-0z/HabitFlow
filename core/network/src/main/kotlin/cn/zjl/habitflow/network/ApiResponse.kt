@@ -7,8 +7,12 @@ package cn.zjl.habitflow.network
  * MVP 纯本地无真实后端，本类型为骨架预留（面试可讲"统一返回结构"）。
  */
 sealed interface ApiResponse<out T> {
+    data class Success<T>(
+        val data: T,
+    ) : ApiResponse<T>
 
-    data class Success<T>(val data: T) : ApiResponse<T>
-
-    data class Error(val code: Int, val message: String) : ApiResponse<Nothing>
+    data class Error(
+        val code: Int,
+        val message: String,
+    ) : ApiResponse<Nothing>
 }

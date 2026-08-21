@@ -18,7 +18,7 @@ import cn.zjl.habitflow.data.entity.HabitRecordEntity
     version = 1,
     exportSchema = true,
 )
-@TypeConverters(Converters::class)   // 备选方案（LocalDate 字段）时启用
+@TypeConverters(Converters::class) // 备选方案（LocalDate 字段）时启用
 abstract class AppDatabase : RoomDatabase() {
     abstract fun habitDao(): HabitDao
 }

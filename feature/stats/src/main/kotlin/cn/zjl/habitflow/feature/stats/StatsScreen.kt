@@ -51,20 +51,23 @@ fun StatsScreen(
 
     when {
         uiState.isLoading -> LoadingView(modifier = modifier)
-        uiState.errorMessage != null -> ErrorView(
-            modifier = modifier,
-            message = uiState.errorMessage.orEmpty(),
-        )
-        uiState.stats.isEmpty() -> EmptyView(
-            modifier = modifier,
-            title = "暂无统计数据",
-            subtitle = "先去首页创建习惯并打卡吧",
-        )
-        else -> StatsList(
-            stats = uiState.stats,
-            heatmap = uiState.heatmap,
-            modifier = modifier,
-        )
+        uiState.errorMessage != null ->
+            ErrorView(
+                modifier = modifier,
+                message = uiState.errorMessage.orEmpty(),
+            )
+        uiState.stats.isEmpty() ->
+            EmptyView(
+                modifier = modifier,
+                title = "暂无统计数据",
+                subtitle = "先去首页创建习惯并打卡吧",
+            )
+        else ->
+            StatsList(
+                stats = uiState.stats,
+                heatmap = uiState.heatmap,
+                modifier = modifier,
+            )
     }
 }
 
@@ -120,10 +123,11 @@ private fun HeatmapView(
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Canvas(
-            modifier = modifier
-                .fillMaxWidth()
-                .height((cellSize + gap) * 7 - gap)
-                .testTag("habit_heatmap"),
+            modifier =
+                modifier
+                    .fillMaxWidth()
+                    .height((cellSize + gap) * 7 - gap)
+                    .testTag("habit_heatmap"),
         ) {
             val cellPx = cellSize.toPx()
             val gapPx = gap.toPx()
@@ -153,9 +157,10 @@ private fun HeatmapView(
             )
             (0..4).forEach { level ->
                 Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .background(heatmapLevelColor(level, colorScheme.primary, colorScheme.surfaceVariant)),
+                    modifier =
+                        Modifier
+                            .size(12.dp)
+                            .background(heatmapLevelColor(level, colorScheme.primary, colorScheme.surfaceVariant)),
                 )
             }
             Text(
@@ -168,13 +173,18 @@ private fun HeatmapView(
 }
 
 /** 颜色分级：0=灰，1/2/3/≥4 为主题绿渐深（M3 3.5） */
-private fun heatmapLevelColor(count: Int, primary: Color, surface: Color): Color = when {
-    count <= 0 -> surface
-    count == 1 -> primary.copy(alpha = 0.25f)
-    count == 2 -> primary.copy(alpha = 0.50f)
-    count == 3 -> primary.copy(alpha = 0.75f)
-    else -> primary
-}
+private fun heatmapLevelColor(
+    count: Int,
+    primary: Color,
+    surface: Color,
+): Color =
+    when {
+        count <= 0 -> surface
+        count == 1 -> primary.copy(alpha = 0.25f)
+        count == 2 -> primary.copy(alpha = 0.50f)
+        count == 3 -> primary.copy(alpha = 0.75f)
+        else -> primary
+    }
 
 @Composable
 private fun StatCard(

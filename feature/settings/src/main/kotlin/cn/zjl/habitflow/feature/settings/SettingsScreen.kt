@@ -28,15 +28,17 @@ fun SettingsScreen(
 
     when {
         uiState.isLoading -> LoadingView(modifier = modifier)
-        uiState.errorMessage != null -> ErrorView(
-            modifier = modifier,
-            message = uiState.errorMessage.orEmpty(),
-        )
-        else -> SettingsContent(
-            isDarkMode = uiState.isDarkMode,
-            onDarkModeChange = viewModel::onDarkModeChange,
-            modifier = modifier,
-        )
+        uiState.errorMessage != null ->
+            ErrorView(
+                modifier = modifier,
+                message = uiState.errorMessage.orEmpty(),
+            )
+        else ->
+            SettingsContent(
+                isDarkMode = uiState.isDarkMode,
+                onDarkModeChange = viewModel::onDarkModeChange,
+                modifier = modifier,
+            )
     }
 }
 

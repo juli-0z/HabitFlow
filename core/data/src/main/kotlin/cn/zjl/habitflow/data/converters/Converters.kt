@@ -9,7 +9,6 @@ import java.time.LocalDate
  * 若改用 LocalDate 字段则启用（@Database 已注册 @TypeConverters）。
  */
 class Converters {
-
     @TypeConverter
     fun fromEpochDay(value: Long): LocalDate = LocalDate.ofEpochDay(value)
 

@@ -9,8 +9,16 @@ plugins {
 
 android {
     namespace = "cn.zjl.habitflow.data"
-    compileSdk = libs.versions.compileSdk.get().toInt()
-    defaultConfig { minSdk = libs.versions.minSdk.get().toInt() }
+    compileSdk =
+        libs.versions.compileSdk
+            .get()
+            .toInt()
+    defaultConfig {
+        minSdk =
+            libs.versions.minSdk
+                .get()
+                .toInt()
+    }
     // Room schema 导出：schema 文件进版本库，迁移时 diff 用
     ksp { arg("room.schemaLocation", "$projectDir/schemas") }
     compileOptions {
@@ -29,7 +37,7 @@ kotlin {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.desugar.jdk.libs)   // java.time 脱糖（minSdk 24，§5.2 LocalDate）
+    coreLibraryDesugaring(libs.desugar.jdk.libs) // java.time 脱糖（minSdk 24，§5.2 LocalDate）
     implementation(project(":core:model"))
     implementation(project(":core:domain"))
     implementation(project(":core:network"))
@@ -39,14 +47,14 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.datastore.preferences)
-    implementation(libs.retrofit)          // 网络骨架
+    implementation(libs.retrofit) // 网络骨架
     implementation(libs.okhttp)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.mockk)           // Repository 映射单测（M3 3.9）
-    testImplementation(libs.room.testing)  // 真库测试
+    testImplementation(libs.mockk) // Repository 映射单测（M3 3.9）
+    testImplementation(libs.room.testing) // 真库测试
     testImplementation(project(":core:testing"))
     // §8.2/§8.4：Room 真库测试在 androidTest（inMemory + ApplicationProvider）
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.test.runner)   // AndroidJUnitRunner（ext-junit 不传递，2.8 实测补）
+    androidTestImplementation(libs.androidx.test.runner) // AndroidJUnitRunner（ext-junit 不传递，2.8 实测补）
 }

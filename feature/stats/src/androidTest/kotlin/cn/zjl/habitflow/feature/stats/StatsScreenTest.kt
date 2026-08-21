@@ -11,12 +11,12 @@ import cn.zjl.habitflow.model.Habit
 import cn.zjl.habitflow.model.StreakStats
 import io.mockk.every
 import io.mockk.mockk
-import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.LocalDate
 
 /**
  * StatsScreen Compose UI Test（M3 3.4/3.5，androidTest）
@@ -25,7 +25,6 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class StatsScreenTest {
-
     @get:Rule
     val composeRule = createComposeRule()
 
@@ -34,9 +33,10 @@ class StatsScreenTest {
         heatmap: List<HeatmapCell> = emptyList(),
     ): StatsViewModel {
         val viewModel = mockk<StatsViewModel>()
-        every { viewModel.uiState } returns MutableStateFlow(
-            StatsUiState(stats = stats, heatmap = heatmap, isLoading = false),
-        )
+        every { viewModel.uiState } returns
+            MutableStateFlow(
+                StatsUiState(stats = stats, heatmap = heatmap, isLoading = false),
+            )
         every { viewModel.events } returns emptyFlow()
         return viewModel
     }
@@ -51,22 +51,24 @@ class StatsScreenTest {
 
     @Test
     fun statsList_rendersHabitStats() {
-        val item = HabitStats(
-            habit = Habit(id = 1, name = "晨跑", frequency = Frequency.DAILY, createdAt = 0L),
-            stats = StreakStats(
-                currentStreak = 3,
-                longestStreak = 5,
-                sevenDayCompletionRate = 3.0 / 7.0,
-                thirtyDayCompletionRate = 0.5,
-            ),
-        )
+        val item =
+            HabitStats(
+                habit = Habit(id = 1, name = "晨跑", frequency = Frequency.DAILY, createdAt = 0L),
+                stats =
+                    StreakStats(
+                        currentStreak = 3,
+                        longestStreak = 5,
+                        sevenDayCompletionRate = 3.0 / 7.0,
+                        thirtyDayCompletionRate = 0.5,
+                    ),
+            )
         setContent(fakeViewModel(stats = listOf(item)))
 
         composeRule.onNodeWithText("晨跑").assertIsDisplayed()
-        composeRule.onNodeWithText("3 天").assertIsDisplayed()     // 当前连续
-        composeRule.onNodeWithText("5 天").assertIsDisplayed()     // 最长连续
-        composeRule.onNodeWithText("43%").assertIsDisplayed()      // 3/7 ≈ 42.86 → 43%
-        composeRule.onNodeWithText("50%").assertIsDisplayed()      // 0.5 → 50%
+        composeRule.onNodeWithText("3 天").assertIsDisplayed() // 当前连续
+        composeRule.onNodeWithText("5 天").assertIsDisplayed() // 最长连续
+        composeRule.onNodeWithText("43%").assertIsDisplayed() // 3/7 ≈ 42.86 → 43%
+        composeRule.onNodeWithText("50%").assertIsDisplayed() // 0.5 → 50%
     }
 
     @Test
@@ -78,10 +80,11 @@ class StatsScreenTest {
 
     @Test
     fun heatmap_sectionShowsWhenDataExists() {
-        val item = HabitStats(
-            habit = Habit(id = 1, name = "晨跑", frequency = Frequency.DAILY, createdAt = 0L),
-            stats = StreakStats(currentStreak = 1, longestStreak = 1),
-        )
+        val item =
+            HabitStats(
+                habit = Habit(id = 1, name = "晨跑", frequency = Frequency.DAILY, createdAt = 0L),
+                stats = StreakStats(currentStreak = 1, longestStreak = 1),
+            )
         setContent(
             fakeViewModel(
                 stats = listOf(item),

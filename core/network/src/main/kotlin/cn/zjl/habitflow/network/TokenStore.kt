@@ -6,7 +6,6 @@ package cn.zjl.habitflow.network
  * 经 Hilt 注入进 network 模块。
  */
 interface TokenStore {
-
     suspend fun getToken(): String?
 
     suspend fun saveToken(token: String)

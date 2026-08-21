@@ -30,9 +30,10 @@ fun HabitFlowBottomBar(
 ) {
     NavigationBar(modifier = modifier) {
         bottomBarItems.forEach { item ->
-            val selected = currentDestination
-                ?.hierarchy
-                ?.any { it.hasRoute(item.route::class) } == true
+            val selected =
+                currentDestination
+                    ?.hierarchy
+                    ?.any { it.hasRoute(item.route::class) } == true
             NavigationBarItem(
                 selected = selected,
                 onClick = { onNavigate(item.route) },
@@ -44,13 +45,14 @@ fun HabitFlowBottomBar(
 }
 
 private data class BottomBarItem(
-    val route: Any,          // @Serializable 路由对象（单例，可用作 key）
+    val route: Any, // @Serializable 路由对象（单例，可用作 key）
     val label: String,
     val icon: ImageVector,
 )
 
-private val bottomBarItems = listOf(
-    BottomBarItem(route = HomeRoute, label = "首页", icon = Icons.Filled.Home),
-    BottomBarItem(route = StatsRoute, label = "统计", icon = Icons.Filled.DateRange),
-    BottomBarItem(route = SettingsRoute, label = "设置", icon = Icons.Filled.Settings),
-)
+private val bottomBarItems =
+    listOf(
+        BottomBarItem(route = HomeRoute, label = "首页", icon = Icons.Filled.Home),
+        BottomBarItem(route = StatsRoute, label = "统计", icon = Icons.Filled.DateRange),
+        BottomBarItem(route = SettingsRoute, label = "设置", icon = Icons.Filled.Settings),
+    )

@@ -10,10 +10,18 @@ plugins {
 
 android {
     namespace = "cn.zjl.habitflow.network"
-    compileSdk = libs.versions.compileSdk.get().toInt()
-    defaultConfig { minSdk = libs.versions.minSdk.get().toInt() }
+    compileSdk =
+        libs.versions.compileSdk
+            .get()
+            .toInt()
+    defaultConfig {
+        minSdk =
+            libs.versions.minSdk
+                .get()
+                .toInt()
+    }
     buildFeatures {
-        buildConfig = true   // LoggingInterceptor/RetrofitClient 需要 BuildConfig.DEBUG
+        buildConfig = true // LoggingInterceptor/RetrofitClient 需要 BuildConfig.DEBUG
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -31,7 +39,7 @@ kotlin {
 dependencies {
     implementation(libs.retrofit)
     implementation(libs.okhttp)
-    implementation(libs.okhttp.logging)   // HttpLoggingInterceptor（仅 debug，§7.1）
+    implementation(libs.okhttp.logging) // HttpLoggingInterceptor（仅 debug，§7.1）
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     // 空测试 APK 的 instrumentation 也需要 runner（2.12 全量实测）

@@ -42,6 +42,7 @@ testRunner = "1.5.2"     # androidx.test:runner（AndroidJUnitRunner，2.8 实�
 coroutinesTest = "1.10.2"
 mockk = "1.13.13"
 turbine = "1.2.0"
+ktlint = "14.2.0"         # 代码规范自检（3.11，org.jlleitschuh.gradle.ktlint 最新稳定）
 
 [libraries]
 # AndroidX
@@ -96,3 +97,4 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }   # 代码规范自检（3.11）

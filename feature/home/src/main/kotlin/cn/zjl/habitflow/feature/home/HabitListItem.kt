@@ -46,32 +46,38 @@ fun HabitListItem(
                 imageVector = iconFromString(habit.iconRes),
                 contentDescription = null,
                 tint = iconTint,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(iconTint.copy(alpha = 0.12f))   // 图标着色圆底（M3 3.1）
-                    .testTag("habit_icon_${habit.id}"),
+                modifier =
+                    Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(iconTint.copy(alpha = 0.12f)) // 图标着色圆底（M3 3.1）
+                        .testTag("habit_icon_${habit.id}"),
             )
         },
         trailingContent = {
             Checkbox(
                 checked = isChecked,
                 onCheckedChange = onCheckedChange,
-                modifier = Modifier.testTag("checkin_${habit.id}"),   // §8.3 UI 测试定位约定
+                modifier = Modifier.testTag("checkin_${habit.id}"), // §8.3 UI 测试定位约定
             )
         },
-        modifier = modifier.combinedClickable(
-            onClick = { onEdit(habit) },                // M3 3.1：点击项打开编辑
-            onLongClick = { onRequestDelete(habit) },   // M3 3.2：长按项请求删除
-        ),
+        modifier =
+            modifier.combinedClickable(
+                onClick = { onEdit(habit) }, // M3 3.1：点击项打开编辑
+                onLongClick = { onRequestDelete(habit) }, // M3 3.2：长按项请求删除
+            ),
     )
 }
 
 /** 副标题：频率 + 今日连续（M3 3.3，连续 >0 才展示） */
-private fun listItemSubtitle(habit: Habit, currentStreak: Int): String {
-    val frequency = when (habit.frequency) {
-        Frequency.DAILY -> "每天"
-        Frequency.WEEKLY -> "每周 ${habit.targetPerWeek} 次"
-    }
+private fun listItemSubtitle(
+    habit: Habit,
+    currentStreak: Int,
+): String {
+    val frequency =
+        when (habit.frequency) {
+            Frequency.DAILY -> "每天"
+            Frequency.WEEKLY -> "每周 ${habit.targetPerWeek} 次"
+        }
     return if (currentStreak > 0) "$frequency · 连续 $currentStreak 天" else frequency
 }

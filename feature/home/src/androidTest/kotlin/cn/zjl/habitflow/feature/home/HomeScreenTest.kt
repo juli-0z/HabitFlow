@@ -32,7 +32,6 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class HomeScreenTest {
-
     @get:Rule
     val composeRule = createComposeRule()
 
@@ -42,21 +41,23 @@ class HomeScreenTest {
         streaks: Map<Long, Int> = emptyMap(),
     ): HomeViewModel {
         val viewModel = mockk<HomeViewModel>()
-        val stateFlow = MutableStateFlow(
-            HomeUiState(
-                habits = habits,
-                isLoading = false,
-                checkedHabitIds = checkedIds,
-                streaks = streaks,
-            ),
-        )
+        val stateFlow =
+            MutableStateFlow(
+                HomeUiState(
+                    habits = habits,
+                    isLoading = false,
+                    checkedHabitIds = checkedIds,
+                    streaks = streaks,
+                ),
+            )
         every { viewModel.uiState } returns stateFlow
         every { viewModel.events } returns emptyFlow()
         // 模拟真实 VM 行为（§5.2：打卡回推状态 / §2.3：打开编辑器）
         every { viewModel.onCheckIn(any()) } answers {
-            stateFlow.value = stateFlow.value.copy(
-                checkedHabitIds = stateFlow.value.checkedHabitIds + firstArg<Long>(),
-            )
+            stateFlow.value =
+                stateFlow.value.copy(
+                    checkedHabitIds = stateFlow.value.checkedHabitIds + firstArg<Long>(),
+                )
         }
         every { viewModel.onShowCreateDialog() } answers {
             stateFlow.value = stateFlow.value.copy(isEditorVisible = true)
@@ -67,14 +68,16 @@ class HomeScreenTest {
         }
         every { viewModel.onConfirmDelete() } answers {
             val target = stateFlow.value.habitToDelete
-            stateFlow.value = stateFlow.value.copy(
-                habitToDelete = null,
-                habits = if (target == null) {
-                    stateFlow.value.habits
-                } else {
-                    stateFlow.value.habits.filterNot { it.id == target.id }
-                },
-            )
+            stateFlow.value =
+                stateFlow.value.copy(
+                    habitToDelete = null,
+                    habits =
+                        if (target == null) {
+                            stateFlow.value.habits
+                        } else {
+                            stateFlow.value.habits.filterNot { it.id == target.id }
+                        },
+                )
         }
         return viewModel
     }
@@ -96,10 +99,11 @@ class HomeScreenTest {
 
     @Test
     fun habitList_rendersHabitNames() {
-        val habits = listOf(
-            Habit(id = 1, name = "晨跑", frequency = Frequency.DAILY, createdAt = 0L),
-            Habit(id = 2, name = "阅读", frequency = Frequency.WEEKLY, targetPerWeek = 3, createdAt = 0L),
-        )
+        val habits =
+            listOf(
+                Habit(id = 1, name = "晨跑", frequency = Frequency.DAILY, createdAt = 0L),
+                Habit(id = 2, name = "阅读", frequency = Frequency.WEEKLY, targetPerWeek = 3, createdAt = 0L),
+            )
         setContent(fakeViewModel(habits = habits))
 
         composeRule.onNodeWithText("晨跑").assertIsDisplayed()
@@ -125,8 +129,8 @@ class HomeScreenTest {
         composeRule.onNodeWithContentDescription("新建习惯").performClick()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithText("新建习惯").assertIsDisplayed()   // 弹窗标题
-        composeRule.onNodeWithText("名称").assertIsDisplayed()      // 表单字段
+        composeRule.onNodeWithText("新建习惯").assertIsDisplayed() // 弹窗标题
+        composeRule.onNodeWithText("名称").assertIsDisplayed() // 表单字段
     }
 
     // ---- M3 3.2 删除链路：长按 -> 确认对话框 -> 确认后列表移除 ----
@@ -160,10 +164,11 @@ class HomeScreenTest {
 
     @Test
     fun todayView_showsPendingAndCompletedSections() {
-        val habits = listOf(
-            Habit(id = 1, name = "晨跑", frequency = Frequency.DAILY, createdAt = 0L),
-            Habit(id = 2, name = "阅读", frequency = Frequency.DAILY, createdAt = 0L),
-        )
+        val habits =
+            listOf(
+                Habit(id = 1, name = "晨跑", frequency = Frequency.DAILY, createdAt = 0L),
+                Habit(id = 2, name = "阅读", frequency = Frequency.DAILY, createdAt = 0L),
+            )
         setContent(fakeViewModel(habits = habits, checkedIds = setOf(2L)))
 
         composeRule.onNodeWithText("待打卡 (1)").assertIsDisplayed()

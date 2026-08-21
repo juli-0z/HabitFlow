@@ -11,9 +11,7 @@ import cn.zjl.habitflow.designsystem.theme.HabitFlowTheme
 
 /** 加载态视图（TECH_DESIGN_v1.1 §1.8 三态组件），页面级居中 Loading */
 @Composable
-fun LoadingView(
-    modifier: Modifier = Modifier,
-) {
+fun LoadingView(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,

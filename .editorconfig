@@ -1,0 +1,7 @@
+# ktlint 规则配置（3.11，org.jlleitschuh.gradle.ktlint 14.2.0 读取）
+root = true
+
+[*.{kt,kts}]
+# Compose 惯例：@Composable 组件函数使用大驼峰命名（如 HabitFlowBottomBar），
+# 与 ktlint 默认 function-naming 规则冲突——按 Compose 官方约定豁免（3.11）
+ktlint_function_naming_ignore_when_annotated_with = Composable

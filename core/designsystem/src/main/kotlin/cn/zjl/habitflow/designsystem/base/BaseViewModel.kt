@@ -14,9 +14,9 @@ import kotlinx.coroutines.launch
  * 不强制全部业务走 launchTask——需要精细错误处理的场景自行 try/catch。
  */
 abstract class BaseViewModel : ViewModel() {
-
     // 事件通道统一在此定义（一次性事件，receiveAsFlow 保证每个事件只被消费一次）
-    protected val _events = Channel<BaseEvent>(Channel.BUFFERED)
+    // 3.11：private backing property 满足 ktlint 规则；子类经 events 消费、错误处理走 launchTask
+    private val _events = Channel<BaseEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
     /**
@@ -45,7 +45,9 @@ abstract class BaseViewModel : ViewModel() {
 
 /** 全局一次性事件（页面级事件继承扩展，如 HomeUiEvent : BaseEvent 或独立定义） */
 sealed interface BaseEvent {
-    data class ShowError(val message: String) : BaseEvent
+    data class ShowError(
+        val message: String,
+    ) : BaseEvent
 }
 
 /** 异常 -> 用户可读文案（兜底实现，业务可覆盖） */

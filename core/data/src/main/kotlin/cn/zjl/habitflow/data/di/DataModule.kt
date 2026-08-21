@@ -21,18 +21,20 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DataModule {
-
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME).build()
+    fun provideDatabase(
+        @ApplicationContext context: Context,
+    ): AppDatabase = Room.databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME).build()
 
     @Provides
     fun provideHabitDao(database: AppDatabase): HabitDao = database.habitDao()
 
     @Provides
     @Singleton
-    fun provideSettingsDataStore(@ApplicationContext context: Context): DataStore<Preferences> =
+    fun provideSettingsDataStore(
+        @ApplicationContext context: Context,
+    ): DataStore<Preferences> =
         androidx.datastore.preferences.core.PreferenceDataStoreFactory.create(
             produceFile = { context.preferencesDataStoreFile(DATASTORE_NAME) },
         )
