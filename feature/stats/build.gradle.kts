@@ -19,6 +19,16 @@ android {
         // 消费 desugaring 库（:core:data）需同步开启（AAR 元数据检查，2.12 实测）
         isCoreLibraryDesugaringEnabled = true
     }
+    // androidTest 依赖（mockk -> junit-jupiter）多 jar 含 META-INF 许可证文件，通配排除（§8.3/2.9 实测，
+    // 3.4 引入 stats androidTest 后补齐——缺失会导致 mergeDebugAndroidTestJavaResource 重复文件失败）
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/LICENSE*",
+                "META-INF/NOTICE*",
+            )
+        }
+    }
 }
 
 // Java/Kotlin 目标统一 17（TECH_DESIGN_v1.1 §11.1）
