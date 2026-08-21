@@ -35,6 +35,9 @@ jobs:
         run: ./gradlew testDebugUnitTest
       - name: Lint
         run: ./gradlew lintDebug
+      - name: Ktlint
+        # 3.11 验收后纳入（静态检查，与 lintDebug 同阶段；失败可提前终止省 assemble 编译，§9.1）
+        run: ./gradlew ktlintCheck
       - name: Assemble
         run: ./gradlew assembleDebug
 
