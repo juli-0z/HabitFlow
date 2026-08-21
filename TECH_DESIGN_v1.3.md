@@ -1000,8 +1000,14 @@ jobs:
       - name: Gradle cache
         uses: actions/cache@v4
         with:
-          path: ~/.gradle/caches
-          key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml') }}
+          # 覆盖依赖/构建缓存 + wrapper 发行版；精确键含 runner.os 与 gradle-wrapper.properties hash；
+          # restore-keys 实现部分命中回退（2026-08-21 增补，§11.8 第 6 项）
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
       - name: Unit tests
         run: ./gradlew testDebugUnitTest
       - name: Lint
@@ -1021,6 +1027,17 @@ jobs:
         run: chmod +x gradlew   # 修复：缺此步报 Permission denied（run 32266737466 实测）
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
+      - name: Gradle cache (instrumented)
+        # 键隔离：独立前缀写入（gradle-instrumented-*），回退链复用 build job 缓存（2026-08-21 增补，§11.8 第 6 项）
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-instrumented-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-instrumented-${{ runner.os }}-
+            gradle-${{ runner.os }}-
       - name: Enable KVM permissions
         # 修复：KVM 无权限 → 软件模拟极慢 → ddmlib 属性读取超时（run 32394658855 实测）；
         # 授予读写并验证，失败即退出——这是 instrumented 全绿的关键一步（run 32398123883 实测）
@@ -1048,6 +1065,15 @@ jobs:
 | ⑥ | **Enable KVM permissions**（chmod 666 /dev/kvm） | 32394658855：ProbeKVM 无权限——软件模拟极慢致 ddmlib 超时 | **run 32398123883 双 job 全绿（7m53s）** |
 
 > **面试可陈述理由（CI 排障故事）**：instrumented 修复链是一次完整的"根因逐层剥离"实战——从表面症状（Permission denied）逐层下挖（action 版本 → API level → UTP 通道 → KVM 硬件加速），每层都用 `--log-failed` 实测证据定位而非猜测；最终根因是 CI runner 的 KVM 权限导致软件模拟极慢、ddmlib 命令超时。这个故事体现"系统化排障 + 证据驱动"的工程素养。
+
+**CI 缓存优化（2026-08-21 增补，§11.8 第 6 项落地，待 ci-debug 实测回写）**：
+
+- **build job**：`path` 覆盖 `~/.gradle/caches`（依赖/构建缓存）+ `~/.gradle/wrapper`（Gradle 发行版，加速环境准备）；
+  精确键含 `runner.os` 与 `gradle-wrapper.properties` hash；`restore-keys: gradle-<os>-` 实现缓存未完全命中时的部分回退；
+- **instrumented job**：键隔离——独立前缀 `gradle-instrumented-`（与 build 缓存写入互不覆盖），回退链
+  `gradle-instrumented-<os>-` → `gradle-<os>-` 复用 build job 已保存的依赖缓存（`needs: build` 时序保证其先完成）；
+- **隔离方式**：键级隔离（两个 job 各占独立 runner，无文件锁竞争），不做 `GRADLE_USER_HOME` 目录隔离（避免依赖重复下载、缓存体积翻倍）；
+- **验证状态**：配置定稿版，未实测；推 `ci-debug/**` 验证 cache restore/save 后回写本模板。
 
 **工作流二 `release.yml`（v1.3：tag 触发实测全绿，2026-08-20 run 32359573146）**：
 
@@ -1155,5 +1181,5 @@ jobs:
 | 3 | 源码注释中 `TECH_DESIGN_v1.2 §x.x` 引用迁移至 v1.3 | 文档升级配套 | 待办（不阻塞功能） |
 | 4 | `android.r8.gradual.support` 实验性标志在 AGP 10 的兼容性跟踪 | 构建配置 | 观察 |
 | 5 | `useUnifiedTestPlatform=false` 与 builtInKotlin/newDsl 逃生通道在 AGP 10 的移除跟踪（v1.3 新增） | 构建配置 | 观察 |
-| 6 | CI 缓存优化（Gradle restore-keys/wrapper + AVD 缓存）——评估结论"现阶段不做"，触发条件：instrumented 已全绿（已满足）后按需评估（v1.3 新增） | CI 优化 | 挂起 |
+| 6 | CI 缓存优化（Gradle restore-keys/wrapper + instrumented 键隔离）——build/instrumented 已实施（2026-08-21，§9.1 配置定稿，待 ci-debug 实测回写）；AVD 缓存仍按需评估 | CI 优化 | 进行中 |
 | 7 | actions 升级项：setup-java v4→v5、Node.js 20 deprecation（v1.3 新增） | CI 维护 | 待办（不阻塞） |

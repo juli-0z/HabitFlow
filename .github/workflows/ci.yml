@@ -22,8 +22,15 @@ jobs:
       - name: Gradle cache
         uses: actions/cache@v4
         with:
-          path: ~/.gradle/caches
-          key: gradle-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml') }}
+          # 覆盖两类内容：依赖/构建缓存（~/.gradle/caches）+ wrapper 发行版（~/.gradle/wrapper，加速构建环境准备）
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          # 精确键：构建脚本 + 版本目录 + wrapper 发行版（distributionUrl 变更时使 wrapper 缓存失效）
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
+          # 回退键：精确键未命中时按 OS 回退到最近一次历史缓存（部分命中恢复，Gradle 自行校验失效项）
+          restore-keys: |
+            gradle-${{ runner.os }}-
       - name: Unit tests
         run: ./gradlew testDebugUnitTest
       - name: Lint
@@ -43,6 +50,18 @@ jobs:
         run: chmod +x gradlew   # 修复：instrumented job 缺此步导致 Permission denied（run 32266737466 实测）
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
+      - name: Gradle cache (instrumented)
+        # 键隔离：独立前缀写入（gradle-instrumented-*），与 build job 缓存互不覆盖；
+        # 回退链优先本 job 历史缓存，其次回退 build job 缓存（needs: build 保证其已保存，复用依赖下载）
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-instrumented-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-instrumented-${{ runner.os }}-
+            gradle-${{ runner.os }}-
       - name: Enable KVM permissions
         # 修复：ProbeKVM 无权限（run 32394658855：permissions to use KVM (/dev/kvm)）→ 软件模拟极慢
         # → ddmlib 属性读取超时（ShellCommandUnresponsiveException）→ 设备被跳过；授予读写并验证，失败即退出
