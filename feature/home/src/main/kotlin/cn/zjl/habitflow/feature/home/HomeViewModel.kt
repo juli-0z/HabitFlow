@@ -5,6 +5,7 @@ import cn.zjl.habitflow.data.repository.HabitRepository
 import cn.zjl.habitflow.designsystem.base.BaseViewModel
 import cn.zjl.habitflow.designsystem.base.toUserMessage
 import cn.zjl.habitflow.domain.HabitValidator
+import cn.zjl.habitflow.domain.StreakCalculator
 import cn.zjl.habitflow.domain.ValidationResult
 import cn.zjl.habitflow.model.Frequency
 import cn.zjl.habitflow.model.Habit
@@ -42,32 +43,52 @@ class HomeViewModel @Inject constructor(
 
     /**
      * 订阅未归档习惯列表（§5.1：软删除过滤在 DAO），
-     * 并合并每个习惯当日打卡状态（§5.2：observeChecked Flow），实现 UI 自动刷新。
+     * 并合并每个习惯的今日状态（是否打卡 + 今日连续，M3 3.3），实现 UI 自动刷新。
      */
     private fun observeHabits() {
         viewModelScope.launch {
             habitRepository.observeHabits()
                 .flatMapLatest { habits ->
-                    observeCheckedStates(habits).map { checkedIds -> habits to checkedIds }
+                    observeTodayStates(habits).map { todayStates -> habits to todayStates }
                 }
                 .catch { e ->
                     _uiState.update { it.copy(isLoading = false, errorMessage = e.toUserMessage()) }
                 }
-                .collect { (habits, checkedIds) ->
+                .collect { (habits, todayStates) ->
                     _uiState.update {
-                        HomeUiState(habits = habits, isLoading = false, checkedHabitIds = checkedIds)
+                        it.copy(
+                            habits = habits,
+                            isLoading = false,
+                            checkedHabitIds = todayStates
+                                .filterValues { state -> state.isCheckedToday }
+                                .keys,
+                            streaks = todayStates.mapValues { state -> state.value.currentStreak },
+                        )
                     }
                 }
         }
     }
 
-    /** 当日已打卡习惯 id 集合（combine 合并各习惯的 observeChecked 流） */
-    private fun observeCheckedStates(habits: List<Habit>): kotlinx.coroutines.flow.Flow<Set<Long>> {
-        if (habits.isEmpty()) return flowOf(emptySet())
+    /**
+     * 合并各习惯的今日状态：observeChecked（是否打卡，§5.2）+
+     * observeCompletionStats（近 N 天完成情况，§5.4）经 StreakCalculator 计算今日连续（M3 3.3）。
+     * 连续计算窗口见 [STREAK_WINDOW_DAYS]（MVP 足够，更长连续由记录窗口截断）。
+     */
+    private fun observeTodayStates(habits: List<Habit>): kotlinx.coroutines.flow.Flow<Map<Long, TodayState>> {
+        if (habits.isEmpty()) return flowOf(emptyMap())
         val today = LocalDate.now()
         return combine(habits.map { habit ->
-            habitRepository.observeChecked(habit.id, today).map { checked -> if (checked) habit.id else null }
-        }) { values -> values.filterNotNull().toSet() }
+            combine(
+                habitRepository.observeChecked(habit.id, today),
+                habitRepository.observeCompletionStats(habit.id, STREAK_WINDOW_DAYS),
+            ) { checked, stats ->
+                val records = stats.toMap()
+                habit.id to TodayState(
+                    isCheckedToday = checked,
+                    currentStreak = StreakCalculator.currentStreak(records, today),
+                )
+            }
+        }) { states -> states.toMap() }
     }
 
     // ---- 编辑器意图（2.3，§5.1 新建/编辑共用校验）----
@@ -162,6 +183,11 @@ class HomeViewModel @Inject constructor(
     fun onDismissDelete() {
         _uiState.update { it.copy(habitToDelete = null) }
     }
+
+    private companion object {
+        /** 今日连续计算窗口（M3 3.3）：覆盖 MVP 连续场景，更长连续由窗口截断（文档化取舍） */
+        const val STREAK_WINDOW_DAYS = 60
+    }
 }
 
 /** 首页状态（§4.2：页面级 data class，ViewModel 同文件定义） */
@@ -170,10 +196,17 @@ data class HomeUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val checkedHabitIds: Set<Long> = emptySet(),     // 当日已打卡习惯（2.4，§5.2）
+    val streaks: Map<Long, Int> = emptyMap(),        // habitId -> 今日连续（M3 3.3，>0 才展示）
     val isEditorVisible: Boolean = false,        // 编辑器弹窗可见（2.3）
     val editingHabit: Habit? = null,             // 编辑目标（null = 新建）
     val editorErrorMessage: String? = null,      // 弹窗内校验错误（§5.1）
     val habitToDelete: Habit? = null,            // 待删除目标（M3 3.2，弹确认框用）
+)
+
+/** 习惯今日状态（M3 3.3：是否已打卡 + 今日连续天数；excused 豁免日语义见 §5.3，3.6 后补） */
+data class TodayState(
+    val isCheckedToday: Boolean = false,
+    val currentStreak: Int = 0,
 )
 
 /** 首页一次性事件（§4.2：sealed interface；当前页面暂无发射，预留） */

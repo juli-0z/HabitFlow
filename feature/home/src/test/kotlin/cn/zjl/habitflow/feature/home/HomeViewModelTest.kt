@@ -11,6 +11,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
+import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
@@ -57,6 +58,8 @@ class HomeViewModelTest {
         coEvery { repository.observeHabits() } returns flowOf(habits)
         // 2.4：observeHabits 内部会为每个习惯合并 observeChecked 流（§5.2），需 stub
         coEvery { repository.observeChecked(any(), any()) } returns flowOf(false)
+        // M3 3.3：今日连续计算需要 observeCompletionStats（§5.4），需 stub
+        coEvery { repository.observeCompletionStats(any(), any()) } returns flowOf(emptyList())
 
         val viewModel = HomeViewModel(repository)
         mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
@@ -176,6 +179,7 @@ class HomeViewModelTest {
         val checkedFlow = MutableStateFlow(false)
         coEvery { repository.observeHabits() } returns flowOf(listOf(habit))
         coEvery { repository.observeChecked(1L, any()) } returns checkedFlow
+        coEvery { repository.observeCompletionStats(any(), any()) } returns flowOf(emptyList())
         coEvery { repository.checkIn(any(), any()) } returns Unit
         val viewModel = HomeViewModel(repository)
         mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
@@ -195,6 +199,7 @@ class HomeViewModelTest {
         val checkedFlow = MutableStateFlow(true)
         coEvery { repository.observeHabits() } returns flowOf(listOf(habit))
         coEvery { repository.observeChecked(1L, any()) } returns checkedFlow
+        coEvery { repository.observeCompletionStats(any(), any()) } returns flowOf(emptyList())
         coEvery { repository.checkOut(any(), any()) } returns Unit
         val viewModel = HomeViewModel(repository)
         mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
@@ -282,5 +287,40 @@ class HomeViewModelTest {
 
         assertEquals(null, viewModel.uiState.value.habitToDelete)
         coVerify(exactly = 0) { repository.archiveHabit(any()) }
+    }
+
+    // ---- M3 3.3 今日视图：分区数据源（是否打卡 + 今日连续，§5.2/§5.4 + StreakCalculator）----
+
+    @Test
+    fun `today states expose checked ids and streak`() = runTest {
+        val habit = TestDataFactory.habit(id = 1, name = "晨跑")
+        val today = LocalDate.now()
+        coEvery { repository.observeHabits() } returns flowOf(listOf(habit))
+        coEvery { repository.observeChecked(1L, any()) } returns flowOf(true)
+        coEvery { repository.observeCompletionStats(1L, any()) } returns flowOf(
+            listOf(
+                today.minusDays(2) to true,
+                today.minusDays(1) to true,
+                today to true,
+            ),
+        )
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(setOf(1L), viewModel.uiState.value.checkedHabitIds)
+        assertEquals(3, viewModel.uiState.value.streaks[1L])
+    }
+
+    @Test
+    fun `unchecked habit without history reports zero streak`() = runTest {
+        val habit = TestDataFactory.habit(id = 1, name = "晨跑")
+        coEvery { repository.observeHabits() } returns flowOf(listOf(habit))
+        coEvery { repository.observeChecked(1L, any()) } returns flowOf(false)
+        coEvery { repository.observeCompletionStats(1L, any()) } returns flowOf(emptyList())
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(emptySet<Long>(), viewModel.uiState.value.checkedHabitIds)
+        assertEquals(0, viewModel.uiState.value.streaks[1L])
     }
 }

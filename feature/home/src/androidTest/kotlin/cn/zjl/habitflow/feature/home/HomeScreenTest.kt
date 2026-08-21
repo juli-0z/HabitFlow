@@ -39,10 +39,16 @@ class HomeScreenTest {
     private fun fakeViewModel(
         habits: List<Habit> = emptyList(),
         checkedIds: Set<Long> = emptySet(),
+        streaks: Map<Long, Int> = emptyMap(),
     ): HomeViewModel {
         val viewModel = mockk<HomeViewModel>()
         val stateFlow = MutableStateFlow(
-            HomeUiState(habits = habits, isLoading = false, checkedHabitIds = checkedIds),
+            HomeUiState(
+                habits = habits,
+                isLoading = false,
+                checkedHabitIds = checkedIds,
+                streaks = streaks,
+            ),
         )
         every { viewModel.uiState } returns stateFlow
         every { viewModel.events } returns emptyFlow()
@@ -148,5 +154,27 @@ class HomeScreenTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("晨跑").assertDoesNotExist()
+    }
+
+    // ---- M3 3.3 今日视图：已完成/未完成分区 + 今日连续展示 ----
+
+    @Test
+    fun todayView_showsPendingAndCompletedSections() {
+        val habits = listOf(
+            Habit(id = 1, name = "晨跑", frequency = Frequency.DAILY, createdAt = 0L),
+            Habit(id = 2, name = "阅读", frequency = Frequency.DAILY, createdAt = 0L),
+        )
+        setContent(fakeViewModel(habits = habits, checkedIds = setOf(2L)))
+
+        composeRule.onNodeWithText("待打卡 (1)").assertIsDisplayed()
+        composeRule.onNodeWithText("已完成 (1)").assertIsDisplayed()
+    }
+
+    @Test
+    fun habitItem_showsCurrentStreak() {
+        val habits = listOf(Habit(id = 1, name = "晨跑", frequency = Frequency.DAILY, createdAt = 0L))
+        setContent(fakeViewModel(habits = habits, streaks = mapOf(1L to 3)))
+
+        composeRule.onNodeWithText("每天 · 连续 3 天").assertIsDisplayed()
     }
 }

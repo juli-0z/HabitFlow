@@ -1,6 +1,7 @@
 package cn.zjl.habitflow.feature.home
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,12 +10,14 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cn.zjl.habitflow.designsystem.component.EmptyView
 import cn.zjl.habitflow.designsystem.component.ErrorView
@@ -56,6 +59,7 @@ fun HomeScreen(
             else -> HabitList(
                 habits = uiState.habits,
                 checkedHabitIds = uiState.checkedHabitIds,
+                streaks = uiState.streaks,
                 onCheckIn = viewModel::onCheckIn,
                 onCheckOut = viewModel::onCheckOut,
                 onEdit = viewModel::onShowEditDialog,
@@ -88,25 +92,65 @@ fun HomeScreen(
 private fun HabitList(
     habits: List<Habit>,
     checkedHabitIds: Set<Long>,
+    streaks: Map<Long, Int>,
     onCheckIn: (Long) -> Unit,
     onCheckOut: (Long) -> Unit,
     onEdit: (Habit) -> Unit,
     onRequestDelete: (Habit) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // M3 3.3：已完成/未完成分区（checkedHabitIds 为唯一事实来源，分区与打卡状态严格一致）
+    val pending = habits.filter { it.id !in checkedHabitIds }
+    val completed = habits.filter { it.id in checkedHabitIds }
+
     LazyColumn(modifier = modifier.fillMaxSize()) {
-        items(habits, key = { it.id }) { habit ->
-            HabitListItem(
-                habit = habit,
-                isChecked = habit.id in checkedHabitIds,
-                onCheckedChange = { checked ->
-                    if (checked) onCheckIn(habit.id) else onCheckOut(habit.id)
-                },
-                onEdit = onEdit,
-                onRequestDelete = onRequestDelete,
-            )
+        if (pending.isNotEmpty()) {
+            item(key = "section_pending") { SectionHeader(text = "待打卡 (${pending.size})") }
+            items(pending, key = { it.id }) { habit ->
+                HabitListItem(
+                    habit = habit,
+                    isChecked = false,
+                    currentStreak = streaks[habit.id] ?: 0,
+                    onCheckedChange = { checked ->
+                        if (checked) onCheckIn(habit.id) else onCheckOut(habit.id)
+                    },
+                    onEdit = onEdit,
+                    onRequestDelete = onRequestDelete,
+                )
+            }
+        }
+        if (completed.isNotEmpty()) {
+            item(key = "section_completed") { SectionHeader(text = "已完成 (${completed.size})") }
+            items(completed, key = { it.id }) { habit ->
+                HabitListItem(
+                    habit = habit,
+                    isChecked = true,
+                    currentStreak = streaks[habit.id] ?: 0,
+                    onCheckedChange = { checked ->
+                        if (checked) onCheckIn(habit.id) else onCheckOut(habit.id)
+                    },
+                    onEdit = onEdit,
+                    onRequestDelete = onRequestDelete,
+                )
+            }
         }
     }
+}
+
+/** 分区标题（M3 3.3）：待打卡 / 已完成，含计数 */
+@Composable
+private fun SectionHeader(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    )
 }
 
 /** 删除确认对话框（M3 3.2）：软删除不可逆（统计保留），需用户二次确认 */

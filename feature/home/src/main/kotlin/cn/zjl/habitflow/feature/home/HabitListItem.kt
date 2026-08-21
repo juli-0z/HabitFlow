@@ -30,6 +30,7 @@ import cn.zjl.habitflow.model.Habit
 fun HabitListItem(
     habit: Habit,
     isChecked: Boolean,
+    currentStreak: Int = 0,
     onCheckedChange: (Boolean) -> Unit,
     onEdit: (Habit) -> Unit,
     onRequestDelete: (Habit) -> Unit,
@@ -39,7 +40,7 @@ fun HabitListItem(
 
     ListItem(
         headlineContent = { Text(text = habit.name) },
-        supportingContent = { Text(text = frequencyText(habit)) },
+        supportingContent = { Text(text = listItemSubtitle(habit, currentStreak)) },
         leadingContent = {
             Icon(
                 imageVector = iconFromString(habit.iconRes),
@@ -66,7 +67,11 @@ fun HabitListItem(
     )
 }
 
-private fun frequencyText(habit: Habit): String = when (habit.frequency) {
-    Frequency.DAILY -> "每天"
-    Frequency.WEEKLY -> "每周 ${habit.targetPerWeek} 次"
+/** 副标题：频率 + 今日连续（M3 3.3，连续 >0 才展示） */
+private fun listItemSubtitle(habit: Habit, currentStreak: Int): String {
+    val frequency = when (habit.frequency) {
+        Frequency.DAILY -> "每天"
+        Frequency.WEEKLY -> "每周 ${habit.targetPerWeek} 次"
+    }
+    return if (currentStreak > 0) "$frequency · 连续 $currentStreak 天" else frequency
 }
