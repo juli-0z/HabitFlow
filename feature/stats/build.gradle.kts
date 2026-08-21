@@ -30,7 +30,9 @@ kotlin {
 
 dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)   // 与 :core:data 同步（AAR 元数据要求，2.12 实测）
+    implementation(project(":core:model"))          // Habit/StreakStats 类型（§3.3 feature 模板）
     implementation(project(":core:data"))
+    implementation(project(":core:domain"))          // StreakCalculator 统计计算（M3 3.4）
     implementation(project(":core:designsystem"))
     // §3.3 feature 模板未列 compose 依赖，feature 直接写 Compose UI 需要（构建实测补齐）
     implementation(platform(libs.androidx.compose.bom))
@@ -47,5 +49,8 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(project(":core:testing"))
     androidTestImplementation(libs.compose.ui.test.junit4)
+    androidTestImplementation(libs.mockk.android)   // fake VM 直构（§8.3，仪器测试须用 mockk-android）
+    androidTestImplementation(libs.androidx.junit)   // AndroidJUnit4（ext-junit 不传递 runner，§8.3 依赖清单）
+    androidTestImplementation(libs.androidx.test.runner)
     debugImplementation(libs.compose.ui.test.manifest)
 }

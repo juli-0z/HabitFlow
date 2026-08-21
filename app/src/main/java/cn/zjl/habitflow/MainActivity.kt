@@ -21,6 +21,7 @@ import cn.zjl.habitflow.feature.home.HomeViewModel
 import cn.zjl.habitflow.feature.settings.SettingsScreen
 import cn.zjl.habitflow.feature.settings.SettingsViewModel
 import cn.zjl.habitflow.feature.stats.StatsScreen
+import cn.zjl.habitflow.feature.stats.StatsViewModel
 import cn.zjl.habitflow.navigation.HabitFlowBottomBar
 import cn.zjl.habitflow.navigation.HomeRoute
 import cn.zjl.habitflow.navigation.SettingsRoute
@@ -76,7 +77,10 @@ class MainActivity : ComponentActivity() {
                             val viewModel: HomeViewModel = hiltViewModel()
                             HomeScreen(viewModel = viewModel)
                         }
-                        composable<StatsRoute> { StatsScreen() }
+                        composable<StatsRoute> {
+                            val viewModel: StatsViewModel = hiltViewModel()
+                            StatsScreen(viewModel = viewModel)
+                        }
                         composable<SettingsRoute> {
                             // 目的地作用域 VM（§4.2：导航装配层获取；与 activity 级主题 VM 同源 DataStore）
                             val settingsViewModel: SettingsViewModel = hiltViewModel()
