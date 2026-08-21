@@ -995,7 +995,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Make gradlew executable
         run: chmod +x gradlew
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with: { distribution: temurin, java-version: 17 }
       - name: Gradle cache
         uses: actions/cache@v4
@@ -1025,7 +1025,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Make gradlew executable
         run: chmod +x gradlew   # 修复：缺此步报 Permission denied（run 32266737466 实测）
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with: { distribution: temurin, java-version: 17 }
       - name: Gradle cache (instrumented)
         # 键隔离：独立前缀写入（gradle-instrumented-*），回退链复用 build job 缓存（2026-08-21 增补，§11.8 第 6 项）
@@ -1090,7 +1090,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Make gradlew executable
         run: chmod +x gradlew
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with: { distribution: temurin, java-version: 17 }
       - name: Build release
         run: ./gradlew assembleRelease
@@ -1182,4 +1182,4 @@ jobs:
 | 4 | `android.r8.gradual.support` 实验性标志在 AGP 10 的兼容性跟踪 | 构建配置 | 观察 |
 | 5 | `useUnifiedTestPlatform=false` 与 builtInKotlin/newDsl 逃生通道在 AGP 10 的移除跟踪（v1.3 新增） | 构建配置 | 观察 |
 | 6 | CI 缓存优化（Gradle restore-keys/wrapper + instrumented 键隔离）——build/instrumented 已实施（2026-08-21，§9.1 配置定稿，待 ci-debug 实测回写）；AVD 缓存仍按需评估 | CI 优化 | 进行中 |
-| 7 | actions 升级项：setup-java v4→v5、Node.js 20 deprecation（v1.3 新增） | CI 维护 | 待办（不阻塞） |
+| 7 | actions 升级项：setup-java v4→v5——**v5 已升级（2026-08-21，ci.yml/release.yml + §9.1 模板同步）**；Node.js 20 deprecation（checkout/cache@v4 由 GitHub 强制回退跑 Node 24，持续观察是否需升 v5） | CI 维护 | 部分完成 |

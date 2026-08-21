@@ -6,4 +6,4 @@
 -keep class cn.zjl.habitflow.data.entity.** { *; }
 
 # enum 在 R8 优化下可能被移除，Room 实体字段引用需显式保留（或用 @Keep 标注 Frequency）
--keep enum cn.zjl.habitflow.data.entity.Frequency { *; }
+-keep enum cn.zjl.habitflow.model.Frequency { *; }
