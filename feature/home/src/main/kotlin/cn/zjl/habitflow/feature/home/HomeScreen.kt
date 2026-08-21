@@ -55,6 +55,7 @@ fun HomeScreen(
                 checkedHabitIds = uiState.checkedHabitIds,
                 onCheckIn = viewModel::onCheckIn,
                 onCheckOut = viewModel::onCheckOut,
+                onEdit = viewModel::onShowEditDialog,
                 modifier = Modifier.padding(innerPadding),
             )
         }
@@ -76,6 +77,7 @@ private fun HabitList(
     checkedHabitIds: Set<Long>,
     onCheckIn: (Long) -> Unit,
     onCheckOut: (Long) -> Unit,
+    onEdit: (Habit) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(modifier = modifier.fillMaxSize()) {
@@ -86,6 +88,7 @@ private fun HabitList(
                 onCheckedChange = { checked ->
                     if (checked) onCheckIn(habit.id) else onCheckOut(habit.id)
                 },
+                onEdit = onEdit,
             )
         }
     }

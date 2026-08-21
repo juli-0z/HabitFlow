@@ -10,6 +10,7 @@ import cn.zjl.habitflow.testing.TestDataFactory
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
@@ -108,6 +109,63 @@ class HomeViewModelTest {
         assertEquals(false, viewModel.uiState.value.isEditorVisible)
         assertEquals(null, viewModel.uiState.value.editorErrorMessage)
         coVerify(exactly = 1) { repository.saveHabit(any()) }
+    }
+
+    // ---- M3 3.1 编辑入口 + 图标/颜色落库（§5.1 编辑与新建共用表单）----
+
+    @Test
+    fun `show edit dialog exposes habit for editing`() = runTest {
+        val habit = TestDataFactory.habit(id = 7, name = "晨跑", iconRes = "book", colorHex = "#1565C0")
+        coEvery { repository.observeHabits() } returns flowOf(emptyList<Habit>())
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onShowEditDialog(habit)
+
+        assertEquals(true, viewModel.uiState.value.isEditorVisible)
+        assertEquals(habit, viewModel.uiState.value.editingHabit)
+    }
+
+    @Test
+    fun `saving habit persists icon and color`() = runTest {
+        coEvery { repository.observeHabits() } returns flowOf(emptyList<Habit>())
+        coEvery { repository.saveHabit(any()) } returns 1L
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onShowCreateDialog()
+        viewModel.onSaveHabit(
+            name = "晨跑",
+            frequency = Frequency.DAILY,
+            targetPerWeek = 0,
+            iconRes = "skill",
+            colorHex = "#C62828",
+        )
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        val slot = slot<Habit>()
+        coVerify(exactly = 1) { repository.saveHabit(capture(slot)) }
+        assertEquals("skill", slot.captured.iconRes)
+        assertEquals("#C62828", slot.captured.colorHex)
+    }
+
+    @Test
+    fun `saving edit keeps habit id and createdAt`() = runTest {
+        val original = TestDataFactory.habit(id = 9, name = "晨跑", createdAt = 1000L)
+        coEvery { repository.observeHabits() } returns flowOf(emptyList<Habit>())
+        coEvery { repository.saveHabit(any()) } returns 9L
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onShowEditDialog(original)
+        viewModel.onSaveHabit(name = "夜跑", frequency = Frequency.DAILY, targetPerWeek = 0)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        val slot = slot<Habit>()
+        coVerify(exactly = 1) { repository.saveHabit(capture(slot)) }
+        assertEquals(9L, slot.captured.id)
+        assertEquals(1000L, slot.captured.createdAt)
+        assertEquals("夜跑", slot.captured.name)
     }
 
     // ---- 2.7 打卡状态流转（§8.1：打卡成功→状态更新）----

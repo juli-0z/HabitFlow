@@ -77,6 +77,11 @@ class HomeViewModel @Inject constructor(
         _uiState.update { it.copy(isEditorVisible = true, editingHabit = null, editorErrorMessage = null) }
     }
 
+    /** 打开编辑弹窗（M3 3.1：editingHabit 非空表示编辑，复用同一表单） */
+    fun onShowEditDialog(habit: Habit) {
+        _uiState.update { it.copy(isEditorVisible = true, editingHabit = habit, editorErrorMessage = null) }
+    }
+
     /** 关闭弹窗（取消） */
     fun onDismissEditor() {
         _uiState.update { it.copy(isEditorVisible = false, editingHabit = null, editorErrorMessage = null) }
@@ -85,8 +90,15 @@ class HomeViewModel @Inject constructor(
     /**
      * 保存习惯：先经 HabitValidator 校验（§5.1 编辑与新建共用），
      * 失败 -> 弹窗内展示错误；成功 -> upsert 并关闭弹窗。
+     * [iconRes]/[colorHex] 带默认值（M3 3.1 新增），旧调用保持兼容（不破坏既有单测）。
      */
-    fun onSaveHabit(name: String, frequency: Frequency, targetPerWeek: Int) {
+    fun onSaveHabit(
+        name: String,
+        frequency: Frequency,
+        targetPerWeek: Int,
+        iconRes: String? = null,
+        colorHex: String = "",
+    ) {
         when (val result = HabitValidator.validate(name, frequency, targetPerWeek)) {
             is ValidationResult.Success -> {
                 val editing = _uiState.value.editingHabit
@@ -99,6 +111,8 @@ class HomeViewModel @Inject constructor(
                             name = name.trim(),
                             frequency = frequency,
                             targetPerWeek = targetPerWeek,
+                            iconRes = iconRes,
+                            colorHex = colorHex,
                             createdAt = editing?.createdAt ?: System.currentTimeMillis(),
                         ),
                     )
