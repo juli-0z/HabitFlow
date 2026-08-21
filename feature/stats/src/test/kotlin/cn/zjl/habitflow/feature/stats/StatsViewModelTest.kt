@@ -53,6 +53,7 @@ class StatsViewModelTest {
 
         assertEquals(false, viewModel.uiState.value.isLoading)
         assertEquals(emptyList<HabitStats>(), viewModel.uiState.value.stats)
+        assertEquals(emptyList<HeatmapCell>(), viewModel.uiState.value.heatmap)
         assertEquals(null as String?, viewModel.uiState.value.errorMessage)
     }
 
@@ -89,5 +90,24 @@ class StatsViewModelTest {
 
         assertEquals(false, viewModel.uiState.value.isLoading)
         assertEquals("db broken", viewModel.uiState.value.errorMessage)
+    }
+
+    @Test
+    fun `heatmap aggregates completion counts across habits`() = runTest {
+        val today = LocalDate.now()
+        coEvery { repository.observeHabits() } returns flowOf(listOf(habit(id = 1), habit(id = 2)))
+        // A：昨天+今天打卡；B：仅今天打卡 -> 今天完成数 2，昨天完成数 1
+        coEvery { repository.observeCompletionStats(1L, any()) } returns flowOf(completionWindow(setOf(58, 59)))
+        coEvery { repository.observeCompletionStats(2L, any()) } returns flowOf(completionWindow(setOf(59)))
+
+        val viewModel = StatsViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        val heatmap = viewModel.uiState.value.heatmap
+        assertEquals(60, heatmap.size)                       // 与 WINDOW_DAYS 一致
+        assertEquals(today, heatmap.last().date)             // 最后一格 = 今天
+        assertEquals(2, heatmap.last().completedCount)       // 两个习惯都完成今天
+        assertEquals(1, heatmap[heatmap.size - 2].completedCount)   // 昨天只有 A
+        assertEquals(0, heatmap.first().completedCount)      // 最早一天无打卡
     }
 }

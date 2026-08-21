@@ -43,27 +43,52 @@ class StatsViewModel @Inject constructor(
     private fun observeStats() {
         viewModelScope.launch {
             habitRepository.observeHabits()
-                .flatMapLatest { habits ->
-                    observeStatsForHabits(habits).map { stats -> habits to stats }
-                }
+                .flatMapLatest { habits -> observeStatsForHabits(habits) }
                 .catch { e ->
                     _uiState.update { it.copy(isLoading = false, errorMessage = e.toUserMessage()) }
                 }
-                .collect { (_, stats) ->
-                    _uiState.update { it.copy(isLoading = false, stats = stats) }
+                .collect { (stats, heatmap) ->
+                    _uiState.update { it.copy(isLoading = false, stats = stats, heatmap = heatmap) }
                 }
         }
     }
 
-    /** 合并各习惯统计（combine，顺序与 habits 一致） */
-    private fun observeStatsForHabits(habits: List<Habit>): kotlinx.coroutines.flow.Flow<List<HabitStats>> {
-        if (habits.isEmpty()) return flowOf(emptyList())
+    /** 合并各习惯统计 + 热力图聚合（combine，顺序与 habits 一致；M3 3.5） */
+    private fun observeStatsForHabits(
+        habits: List<Habit>,
+    ): kotlinx.coroutines.flow.Flow<Pair<List<HabitStats>, List<HeatmapCell>>> {
+        if (habits.isEmpty()) return flowOf(emptyList<HabitStats>() to emptyList())
         val today = LocalDate.now()
         return combine(habits.map { habit ->
             habitRepository.observeCompletionStats(habit.id, WINDOW_DAYS).map { days ->
+                habit to days
+            }
+        }) { values ->
+            val pairs = values.toList()
+            val stats = pairs.map { (habit, days) ->
                 HabitStats(habit = habit, stats = computeStats(days, today))
             }
-        }) { values -> values.toList() }
+            stats to aggregateHeatmap(pairs.map { it.second }, today)
+        }
+    }
+
+    /** 热力图聚合：统计窗口内每天被多少个习惯完成（0..N，M3 3.5，颜色分级依据） */
+    private fun aggregateHeatmap(
+        windows: List<List<Pair<LocalDate, Boolean>>>,
+        today: LocalDate,
+    ): List<HeatmapCell> {
+        if (windows.isEmpty()) return emptyList()
+        val countByDate = mutableMapOf<LocalDate, Int>()
+        windows.forEach { window ->
+            window.forEach { (date, checked) ->
+                if (checked) countByDate[date] = (countByDate[date] ?: 0) + 1
+            }
+        }
+        val start = today.minusDays((WINDOW_DAYS - 1).toLong())
+        return (0 until WINDOW_DAYS).map { offset ->
+            val date = start.plusDays(offset.toLong())
+            HeatmapCell(date = date, completedCount = countByDate[date] ?: 0)
+        }
     }
 
     private fun computeStats(days: List<Pair<LocalDate, Boolean>>, today: LocalDate): StreakStats {
@@ -93,9 +118,16 @@ data class HabitStats(
     val stats: StreakStats,
 )
 
+/** 热力图单元格：日期 + 当日完成习惯数（M3 3.5，聚合各习惯，颜色分级依据） */
+data class HeatmapCell(
+    val date: LocalDate,
+    val completedCount: Int,
+)
+
 /** 统计页状态（§4.2） */
 data class StatsUiState(
     val stats: List<HabitStats> = emptyList(),
+    val heatmap: List<HeatmapCell> = emptyList(),   // 近 WINDOW_DAYS 天每日完成习惯数（M3 3.5）
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
 )
