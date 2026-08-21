@@ -7,6 +7,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -49,5 +50,33 @@ class SettingsViewModelTest {
 
         assertEquals(true, viewModel.uiState.value.isDarkMode)
         coVerify(exactly = 1) { dataSource.setDarkMode(true) }
+    }
+
+    // ---- M3 3.10 三态：Loading 过渡 / 错误兜底 ----
+
+    @Test
+    fun `loading resolves after data store emission`() = runTest {
+        every { dataSource.isDarkMode } returns flowOf(false)
+
+        val viewModel = SettingsViewModel(dataSource)
+
+        assertEquals(true, viewModel.uiState.value.isLoading)   // 初始 Loading（3.10）
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.value.isLoading)
+        assertEquals(null as String?, viewModel.uiState.value.errorMessage)
+    }
+
+    @Test
+    fun `data store error exposes error message`() = runTest {
+        every { dataSource.isDarkMode } returns flow {
+            throw IllegalStateException("datastore broken")
+        }
+
+        val viewModel = SettingsViewModel(dataSource)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.value.isLoading)
+        assertEquals("datastore broken", viewModel.uiState.value.errorMessage)
     }
 }

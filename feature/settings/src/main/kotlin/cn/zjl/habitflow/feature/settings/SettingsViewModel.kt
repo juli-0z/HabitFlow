@@ -25,7 +25,7 @@ class SettingsViewModel @Inject constructor(
     private val settingsDataSource: SettingsDataSource,
 ) : BaseViewModel() {
 
-    private val _uiState = MutableStateFlow(SettingsUiState())
+    private val _uiState = MutableStateFlow(SettingsUiState(isLoading = true))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     init {
@@ -36,10 +36,10 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             settingsDataSource.isDarkMode
                 .catch { e ->
-                    _uiState.update { it.copy(errorMessage = e.toUserMessage()) }
+                    _uiState.update { it.copy(isLoading = false, errorMessage = e.toUserMessage()) }
                 }
                 .collect { isDarkMode ->
-                    _uiState.update { SettingsUiState(isDarkMode = isDarkMode) }
+                    _uiState.update { it.copy(isDarkMode = isDarkMode, isLoading = false) }
                 }
         }
     }
@@ -56,5 +56,6 @@ class SettingsViewModel @Inject constructor(
 /** 设置页状态（§4.2：页面级 data class，ViewModel 同文件定义） */
 data class SettingsUiState(
     val isDarkMode: Boolean = false,
-    val errorMessage: String? = null,
+    val isLoading: Boolean = false,          // 初始读取 DataStore 中（M3 3.10 三态）
+    val errorMessage: String? = null,        // DataStore 读取失败（M3 3.10 三态）
 )
