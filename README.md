@@ -1,24 +1,25 @@
 # HabitFlow
 
 > **本地优先（Local-first）的习惯打卡与数据统计工具 App**，面向国内 Android 初级/中级岗位求职练习。
-> 项目定位与选型理由详见 [TECH_DESIGN_v1.2.md](TECH_DESIGN_v1.2.md) §1.1。
+> 项目定位与选型理由详见 [TECH_DESIGN_v1.3.md](TECH_DESIGN_v1.3.md) §1.1。
 
 ## 文档导航
 
 | 文档 | 定位 | 适用读者 | 更新约定 |
 |---|---|---|---|
-| [TECH_DESIGN_v1.2.md](TECH_DESIGN_v1.2.md) | 技术设计（**现行版**）：选型 / 模块架构 / 数据流 / 功能 / 数据层 / 网络层 / 测试 / CI / 面试速查 | 自己、面试官 | 低频更新；新增章节用 x.y 递进子编号或附录（§11+），不重排既有编号；版本基线表（§2.1）与模块登记表（§3.1）为唯一事实来源 |
-| [DEVELOPMENT_PLAN_v1.2.md](DEVELOPMENT_PLAN_v1.2.md) | 开发计划（**现行版**）：里程碑 M1~M4 / 周任务清单（checkbox）/ 必做后补总表 / 风险预案 | 自己（每周更新） | 高频更新；任务按稳定编号勾选（`- [x]`），不重编号 |
-| TECH_DESIGN_v1.1.md / DEVELOPMENT_PLAN_v1.1.md | 历史版本（v1.1，冻结） | — | **已冻结**，仅追溯用；内容以 v1.2 为准 |
+| [TECH_DESIGN_v1.3.md](TECH_DESIGN_v1.3.md) | 技术设计（**现行版**）：选型 / 模块架构 / 数据流 / 功能 / 数据层 / 网络层 / 测试 / CI / 面试速查 | 自己、面试官 | 低频更新；新增章节用 x.y 递进子编号或附录（§11+），不重排既有编号；版本基线表（§2.1）与模块登记表（§3.1）为唯一事实来源 |
+| [DEVELOPMENT_PLAN_v1.3.md](DEVELOPMENT_PLAN_v1.3.md) | 开发计划（**现行版**）：里程碑 M1~M4 / 周任务清单（checkbox）/ 必做后补总表 / 风险预案 | 自己（每周更新） | 高频更新；任务按稳定编号勾选（`- [x]`），不重编号 |
+| TECH_DESIGN_v1.2.md / DEVELOPMENT_PLAN_v1.2.md | 历史版本（v1.2，冻结） | — | **已冻结**，仅追溯用；内容以 v1.3 为准 |
+| TECH_DESIGN_v1.1.md / DEVELOPMENT_PLAN_v1.1.md | 历史版本（v1.1，冻结） | — | **已冻结**，仅追溯用；内容以 v1.3 为准 |
 | TECH_DESIGN.md / DEVELOPMENT_PLAN.md | 原始 v1.0 文档（存档） | — | **已冻结**，不再更新 |
 
 ## 当前工程状态
 
-**状态：M1 里程碑已达成（2026-08-15）**
+**状态：M2 里程碑已达成（2026-08-19，tag `v0.1.0-m2`）**
 
-- **已完成**：10 个 Gradle 模块（6 core + 3 feature + 1 壳）Compose + Hilt + Room + DataStore 架构；:app 模板迁移完成（§11.2~§11.5）；NavHost 导航骨架（§4.5）；`./gradlew assembleDebug` 304 tasks 全绿；`:core:domain:test` 9 用例全绿；模拟器启动人工验证通过；**tag `v0.1.0-m1` 已打**（里程碑基线留档，`v*` 通配与未来 2.11 release.yml 兼容）；
-- **进行中**：M2（第 2 周）——首个端到端 Demo；2.1（Repository）已由 1.6 提前完成，从 **2.2（HomeScreen + HomeViewModel）** 开始；
-- **版本基线（已定版，2026-08-13）**：Gradle 9.4.1 / AGP 9.2.1 / compileSdk 37 / Kotlin 2.3.20 / KSP 2.3.11 / Hilt 2.59.1 / Room 2.8.4 / Compose BOM 2026.05.00 / Java 17（详见 TECH_DESIGN_v1.2.md §2.1）。
+- **已完成**：10 个 Gradle 模块（6 core + 3 feature + 1 壳）Compose + Hilt + Room + DataStore 架构；首个端到端 Demo（M2：建习惯 → 打卡 → 撤销 → 首页刷新闭环，人工验证通过）；深色模式持久化（重启保持）；单测 19 用例 + 仪器测试 9 用例全绿；GitHub Actions CI（build + instrumented 双 job）与 Release（tag 触发出包）双链路实测全绿；tag `v0.1.0-m1` / `v0.1.0-m2` 已打；
+- **进行中**：M3（第 3~4 周）——核心功能冻结：3.1 习惯编辑页完整化起（编辑 → 删除 → 今日视图 → 统计页 → 热力图）；
+- **版本基线（已定版，2026-08-13）**：Gradle 9.4.1 / AGP 9.2.1 / compileSdk 37 / Kotlin 2.3.20 / KSP 2.3.11 / Hilt 2.59.1 / Room 2.8.4 / Compose BOM 2026.05.00 / desugar_jdk_libs 2.1.4 / Java 17（详见 TECH_DESIGN_v1.3.md §2.1）。
 
 ## 快速开始
 
