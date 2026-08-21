@@ -4,10 +4,12 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import cn.zjl.habitflow.designsystem.theme.HabitFlowTheme
 import cn.zjl.habitflow.model.Frequency
@@ -52,6 +54,21 @@ class HomeScreenTest {
         }
         every { viewModel.onShowCreateDialog() } answers {
             stateFlow.value = stateFlow.value.copy(isEditorVisible = true)
+        }
+        // M3 3.2：模拟删除链路（长按请求 -> 确认后从列表移除并关闭对话框）
+        every { viewModel.onRequestDelete(any()) } answers {
+            stateFlow.value = stateFlow.value.copy(habitToDelete = firstArg<Habit>())
+        }
+        every { viewModel.onConfirmDelete() } answers {
+            val target = stateFlow.value.habitToDelete
+            stateFlow.value = stateFlow.value.copy(
+                habitToDelete = null,
+                habits = if (target == null) {
+                    stateFlow.value.habits
+                } else {
+                    stateFlow.value.habits.filterNot { it.id == target.id }
+                },
+            )
         }
         return viewModel
     }
@@ -104,5 +121,32 @@ class HomeScreenTest {
 
         composeRule.onNodeWithText("新建习惯").assertIsDisplayed()   // 弹窗标题
         composeRule.onNodeWithText("名称").assertIsDisplayed()      // 表单字段
+    }
+
+    // ---- M3 3.2 删除链路：长按 -> 确认对话框 -> 确认后列表移除 ----
+
+    @Test
+    fun longPressHabit_showsDeleteConfirmDialog() {
+        val habits = listOf(Habit(id = 1, name = "晨跑", frequency = Frequency.DAILY, createdAt = 0L))
+        setContent(fakeViewModel(habits = habits))
+
+        composeRule.onNodeWithText("晨跑").performTouchInput { longClick() }
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText("删除习惯").assertIsDisplayed()
+        composeRule.onNodeWithText("取消").assertIsDisplayed()
+    }
+
+    @Test
+    fun deleteConfirm_removesHabitFromList() {
+        val habits = listOf(Habit(id = 1, name = "晨跑", frequency = Frequency.DAILY, createdAt = 0L))
+        setContent(fakeViewModel(habits = habits))
+
+        composeRule.onNodeWithText("晨跑").performTouchInput { longClick() }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("删除").performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText("晨跑").assertDoesNotExist()
     }
 }

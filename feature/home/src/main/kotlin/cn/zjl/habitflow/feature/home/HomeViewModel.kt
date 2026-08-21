@@ -139,6 +139,29 @@ class HomeViewModel @Inject constructor(
             habitRepository.checkOut(habitId, LocalDate.now())
         })
     }
+
+    // ---- 删除意图（M3 3.2：长按 -> 确认对话框 -> 软删除 isArchived=1）----
+
+    /** 请求删除：仅记录待删除目标，由 UI 弹出确认对话框（不直接删） */
+    fun onRequestDelete(habit: Habit) {
+        _uiState.update { it.copy(habitToDelete = habit) }
+    }
+
+    /** 确认删除：软删除（archiveHabit），observeActiveHabits 自动过滤使其从列表消失；记录保留用于统计 */
+    fun onConfirmDelete() {
+        val target = _uiState.value.habitToDelete ?: return
+        launchTask(block = {
+            habitRepository.archiveHabit(target.id)
+            _uiState.update { it.copy(habitToDelete = null) }
+        }, onError = {
+            _uiState.update { it.copy(habitToDelete = null) }
+        })
+    }
+
+    /** 取消删除：清除待删除目标，关闭确认对话框 */
+    fun onDismissDelete() {
+        _uiState.update { it.copy(habitToDelete = null) }
+    }
 }
 
 /** 首页状态（§4.2：页面级 data class，ViewModel 同文件定义） */
@@ -150,6 +173,7 @@ data class HomeUiState(
     val isEditorVisible: Boolean = false,        // 编辑器弹窗可见（2.3）
     val editingHabit: Habit? = null,             // 编辑目标（null = 新建）
     val editorErrorMessage: String? = null,      // 弹窗内校验错误（§5.1）
+    val habitToDelete: Habit? = null,            // 待删除目标（M3 3.2，弹确认框用）
 )
 
 /** 首页一次性事件（§4.2：sealed interface；当前页面暂无发射，预留） */

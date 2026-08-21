@@ -1,7 +1,7 @@
 package cn.zjl.habitflow.feature.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Checkbox
@@ -22,7 +22,8 @@ import cn.zjl.habitflow.model.Habit
  *
  * - 前导：习惯图标（按 colorHex 着色，未知回退主题 primary，M3 3.1）；
  * - 尾部：打卡 Checkbox（2.4，勾选=打卡/取消=撤销，testTag 定位约定不变）；
- * - 点击列表项 = 打开编辑（M3 3.1，点击 Checkbox 不会触发——Checkbox 消费自身点击）；
+ * - 点击列表项 = 打开编辑（M3 3.1）；长按列表项 = 请求删除（M3 3.2）；
+ *   点击/长按 Checkbox 不会触发——Checkbox 消费自身点击；
  * - 状态来自当日打卡记录（§5.2：记录表存在与否表示打卡状态）。
  */
 @Composable
@@ -31,6 +32,7 @@ fun HabitListItem(
     isChecked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     onEdit: (Habit) -> Unit,
+    onRequestDelete: (Habit) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val iconTint = colorFromString(habit.colorHex) ?: MaterialTheme.colorScheme.primary
@@ -57,7 +59,10 @@ fun HabitListItem(
                 modifier = Modifier.testTag("checkin_${habit.id}"),   // §8.3 UI 测试定位约定
             )
         },
-        modifier = modifier.clickable { onEdit(habit) },   // M3 3.1：点击项打开编辑
+        modifier = modifier.combinedClickable(
+            onClick = { onEdit(habit) },                // M3 3.1：点击项打开编辑
+            onLongClick = { onRequestDelete(habit) },   // M3 3.2：长按项请求删除
+        ),
     )
 }
 

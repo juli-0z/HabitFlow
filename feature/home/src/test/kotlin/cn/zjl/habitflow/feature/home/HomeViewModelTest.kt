@@ -224,4 +224,63 @@ class HomeViewModelTest {
             assertTrue(event is BaseEvent.ShowError)
         }
     }
+
+    // ---- M3 3.2 删除链路（§5.1 软删除：请求 -> 确认/取消 -> archiveHabit）----
+
+    @Test
+    fun `request delete exposes habit for confirmation`() = runTest {
+        val habit = TestDataFactory.habit(id = 5, name = "晨跑")
+        coEvery { repository.observeHabits() } returns flowOf(emptyList<Habit>())
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onRequestDelete(habit)
+
+        assertEquals(habit, viewModel.uiState.value.habitToDelete)
+    }
+
+    @Test
+    fun `confirm delete archives habit and closes dialog`() = runTest {
+        val habit = TestDataFactory.habit(id = 5, name = "晨跑")
+        coEvery { repository.observeHabits() } returns flowOf(emptyList<Habit>())
+        coEvery { repository.archiveHabit(any()) } returns Unit
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onRequestDelete(habit)
+        viewModel.onConfirmDelete()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(null, viewModel.uiState.value.habitToDelete)
+        coVerify(exactly = 1) { repository.archiveHabit(5L) }
+    }
+
+    @Test
+    fun `dismiss delete closes dialog without archiving`() = runTest {
+        val habit = TestDataFactory.habit(id = 5, name = "晨跑")
+        coEvery { repository.observeHabits() } returns flowOf(emptyList<Habit>())
+        coEvery { repository.archiveHabit(any()) } returns Unit
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onRequestDelete(habit)
+        viewModel.onDismissDelete()
+
+        assertEquals(null, viewModel.uiState.value.habitToDelete)
+        coVerify(exactly = 0) { repository.archiveHabit(any()) }
+    }
+
+    @Test
+    fun `confirm delete without pending target does nothing`() = runTest {
+        coEvery { repository.observeHabits() } returns flowOf(emptyList<Habit>())
+        coEvery { repository.archiveHabit(any()) } returns Unit
+        val viewModel = HomeViewModel(repository)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onConfirmDelete()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(null, viewModel.uiState.value.habitToDelete)
+        coVerify(exactly = 0) { repository.archiveHabit(any()) }
+    }
 }

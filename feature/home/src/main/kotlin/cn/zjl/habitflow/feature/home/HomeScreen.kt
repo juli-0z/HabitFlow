@@ -6,9 +6,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -56,6 +59,7 @@ fun HomeScreen(
                 onCheckIn = viewModel::onCheckIn,
                 onCheckOut = viewModel::onCheckOut,
                 onEdit = viewModel::onShowEditDialog,
+                onRequestDelete = viewModel::onRequestDelete,
                 modifier = Modifier.padding(innerPadding),
             )
         }
@@ -69,6 +73,15 @@ fun HomeScreen(
             onDismiss = viewModel::onDismissEditor,
         )
     }
+
+    // M3 3.2：删除确认对话框（长按列表项后弹出，确认后软删除 archiveHabit）
+    uiState.habitToDelete?.let { habit ->
+        DeleteConfirmDialog(
+            habitName = habit.name,
+            onConfirm = viewModel::onConfirmDelete,
+            onDismiss = viewModel::onDismissDelete,
+        )
+    }
 }
 
 @Composable
@@ -78,6 +91,7 @@ private fun HabitList(
     onCheckIn: (Long) -> Unit,
     onCheckOut: (Long) -> Unit,
     onEdit: (Habit) -> Unit,
+    onRequestDelete: (Habit) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(modifier = modifier.fillMaxSize()) {
@@ -89,7 +103,32 @@ private fun HabitList(
                     if (checked) onCheckIn(habit.id) else onCheckOut(habit.id)
                 },
                 onEdit = onEdit,
+                onRequestDelete = onRequestDelete,
             )
         }
     }
+}
+
+/** 删除确认对话框（M3 3.2）：软删除不可逆（统计保留），需用户二次确认 */
+@Composable
+private fun DeleteConfirmDialog(
+    habitName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "删除习惯") },
+        text = { Text(text = "确定删除「$habitName」吗？历史打卡记录会保留用于统计。") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("删除")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        },
+    )
 }
