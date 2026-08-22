@@ -1,4 +1,7 @@
 // :app 壳模块（TECH_DESIGN_v1.1 §3.3：Application、MainActivity、NavGraph 装配、顶层 DI）
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +9,13 @@ plugins {
     alias(libs.plugins.kotlin.serialization) // §4.5 类型安全路由（@Serializable）
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+}
+
+// M4 5.3：release 签名配置读取（keystore.properties 含敏感密码、绝不入库；缺失时出 unsigned 包）
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
 }
 
 android {
@@ -32,13 +42,24 @@ android {
                 .get()
                 .toInt()
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.3.0" // M4 5.3：语义化版本号（对应 M3 功能冻结版）
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // M4 5.3：release 签名（keystore.properties 缺失时不关联，出 unsigned 包）
+    signingConfigs {
+        create("release") {
+            storeFile = file(keystoreProperties.getProperty("storeFile"))
+            storePassword = keystoreProperties.getProperty("storePassword")
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = if (keystorePropertiesFile.exists()) signingConfigs.getByName("release") else null
             optimization { enable = true } // AGP 9 DSL：替代 isMinifyEnabled + isShrinkResources
             // 显式引用默认规则 + 项目规则（§3.5，proguard-rules.pro 前置项落地）
             proguardFiles(

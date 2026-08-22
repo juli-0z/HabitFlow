@@ -10,3 +10,8 @@ build/
 local.properties
 .kotlin
 .workbuddy/
+
+# release 签名（M4 5.3）：keystore 与密码文件绝不入库（含私钥/密码，丢失无法更新应用）
+*.keystore
+*.jks
+keystore.properties
