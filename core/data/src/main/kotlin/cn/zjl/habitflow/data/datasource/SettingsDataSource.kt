@@ -28,7 +28,20 @@ class SettingsDataSource
             }
         }
 
+        /** 每日提醒开关（M3 3.8，本地通知提醒） */
+        val isReminderEnabled: Flow<Boolean> =
+            dataStore.data.map { preferences ->
+                preferences[KEY_IS_REMINDER_ENABLED] ?: false
+            }
+
+        suspend fun setReminderEnabled(enabled: Boolean) {
+            dataStore.edit { preferences ->
+                preferences[KEY_IS_REMINDER_ENABLED] = enabled
+            }
+        }
+
         private companion object {
             val KEY_IS_DARK_MODE = booleanPreferencesKey("is_dark_mode")
+            val KEY_IS_REMINDER_ENABLED = booleanPreferencesKey("is_reminder_enabled")
         }
     }

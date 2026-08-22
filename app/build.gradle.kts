@@ -74,6 +74,9 @@ dependencies {
     implementation(project(":core:designsystem"))
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    // M3 3.8：WorkManager + Hilt 集成（Application Configuration.Provider 需 HiltWorkerFactory，§5）
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.hilt.work)
     implementation(libs.navigation.compose)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.lifecycle.runtime.compose)

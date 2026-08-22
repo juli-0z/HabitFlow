@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,22 +26,26 @@ class SettingsViewModel
     @Inject
     constructor(
         private val settingsDataSource: SettingsDataSource,
+        private val reminderScheduler: ReminderScheduler,
     ) : BaseViewModel() {
         private val _uiState = MutableStateFlow(SettingsUiState(isLoading = true))
         val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
         init {
-            observeDarkMode()
+            observeSettings()
         }
 
-        private fun observeDarkMode() {
+        private fun observeSettings() {
             viewModelScope.launch {
-                settingsDataSource.isDarkMode
-                    .catch { e ->
-                        _uiState.update { it.copy(isLoading = false, errorMessage = e.toUserMessage()) }
-                    }.collect { isDarkMode ->
-                        _uiState.update { it.copy(isDarkMode = isDarkMode, isLoading = false) }
+                combine(settingsDataSource.isDarkMode, settingsDataSource.isReminderEnabled) { darkMode, reminder ->
+                    darkMode to reminder
+                }.catch { e ->
+                    _uiState.update { it.copy(isLoading = false, errorMessage = e.toUserMessage()) }
+                }.collect { (isDarkMode, isReminderEnabled) ->
+                    _uiState.update {
+                        it.copy(isDarkMode = isDarkMode, isReminderEnabled = isReminderEnabled, isLoading = false)
                     }
+                }
             }
         }
 
@@ -51,11 +56,24 @@ class SettingsViewModel
                 settingsDataSource.setDarkMode(enabled) // 持久化（重启保持）
             })
         }
+
+        /**
+         * 切换每日提醒（M3 3.8）：乐观更新 + DataStore 持久化 + WorkManager 调度/取消。
+         * 通知权限（POST_NOTIFICATIONS，API 33+）由 UI 层请求；未授权时 Worker 内静默降级（无通知）。
+         */
+        fun onToggleReminder(enabled: Boolean) {
+            _uiState.update { it.copy(isReminderEnabled = enabled) } // 立即生效
+            launchTask(block = {
+                settingsDataSource.setReminderEnabled(enabled)
+                if (enabled) reminderScheduler.enable() else reminderScheduler.disable()
+            })
+        }
     }
 
 /** 设置页状态（§4.2：页面级 data class，ViewModel 同文件定义） */
 data class SettingsUiState(
     val isDarkMode: Boolean = false,
+    val isReminderEnabled: Boolean = false, // 每日提醒开关（M3 3.8）
     val isLoading: Boolean = false, // 初始读取 DataStore 中（M3 3.10 三态）
     val errorMessage: String? = null, // DataStore 读取失败（M3 3.10 三态）
 )

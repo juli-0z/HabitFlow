@@ -46,6 +46,10 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    // M3 3.8：本地通知提醒（WorkManager + @HiltWorker 集成，§5）
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.work.compiler)
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.navigation.compose)
     implementation(libs.androidx.hilt.navigation.compose)

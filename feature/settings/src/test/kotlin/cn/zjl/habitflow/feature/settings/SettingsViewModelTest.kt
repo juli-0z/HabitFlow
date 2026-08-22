@@ -6,6 +6,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -25,13 +26,15 @@ class SettingsViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val dataSource = mockk<SettingsDataSource>()
+    private val reminderScheduler = mockk<ReminderScheduler>(relaxed = true)
 
     @Test
     fun `dark mode state follows data store`() =
         runTest {
             every { dataSource.isDarkMode } returns flowOf(true)
+            every { dataSource.isReminderEnabled } returns flowOf(false)
 
-            val viewModel = SettingsViewModel(dataSource)
+            val viewModel = SettingsViewModel(dataSource, reminderScheduler)
             mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
 
             assertEquals(true, viewModel.uiState.value.isDarkMode)
@@ -41,9 +44,10 @@ class SettingsViewModelTest {
     fun `toggle updates state and persists via setDarkMode`() =
         runTest {
             every { dataSource.isDarkMode } returns flowOf(false)
+            every { dataSource.isReminderEnabled } returns flowOf(false)
             coEvery { dataSource.setDarkMode(any()) } returns Unit
 
-            val viewModel = SettingsViewModel(dataSource)
+            val viewModel = SettingsViewModel(dataSource, reminderScheduler)
             mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
 
             viewModel.onDarkModeChange(true)
@@ -59,8 +63,9 @@ class SettingsViewModelTest {
     fun `loading resolves after data store emission`() =
         runTest {
             every { dataSource.isDarkMode } returns flowOf(false)
+            every { dataSource.isReminderEnabled } returns flowOf(false)
 
-            val viewModel = SettingsViewModel(dataSource)
+            val viewModel = SettingsViewModel(dataSource, reminderScheduler)
 
             assertEquals(true, viewModel.uiState.value.isLoading) // 初始 Loading（3.10）
             mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
@@ -76,11 +81,50 @@ class SettingsViewModelTest {
                 flow {
                     throw IllegalStateException("datastore broken")
                 }
+            every { dataSource.isReminderEnabled } returns flowOf(false)
 
-            val viewModel = SettingsViewModel(dataSource)
+            val viewModel = SettingsViewModel(dataSource, reminderScheduler)
             mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
 
             assertEquals(false, viewModel.uiState.value.isLoading)
             assertEquals("datastore broken", viewModel.uiState.value.errorMessage)
+        }
+
+    // ---- M3 3.8 每日提醒开关（§5：持久化 + WorkManager 调度/取消）----
+
+    @Test
+    fun `toggle reminder persists and schedules`() =
+        runTest {
+            every { dataSource.isDarkMode } returns flowOf(false)
+            every { dataSource.isReminderEnabled } returns flowOf(false)
+            coEvery { dataSource.setReminderEnabled(any()) } returns Unit
+
+            val viewModel = SettingsViewModel(dataSource, reminderScheduler)
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.onToggleReminder(true)
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(true, viewModel.uiState.value.isReminderEnabled)
+            coVerify(exactly = 1) { dataSource.setReminderEnabled(true) }
+            verify(exactly = 1) { reminderScheduler.enable() }
+        }
+
+    @Test
+    fun `disable reminder cancels schedule`() =
+        runTest {
+            every { dataSource.isDarkMode } returns flowOf(false)
+            every { dataSource.isReminderEnabled } returns flowOf(true)
+            coEvery { dataSource.setReminderEnabled(any()) } returns Unit
+
+            val viewModel = SettingsViewModel(dataSource, reminderScheduler)
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.onToggleReminder(false)
+            mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(false, viewModel.uiState.value.isReminderEnabled)
+            coVerify(exactly = 1) { dataSource.setReminderEnabled(false) }
+            verify(exactly = 1) { reminderScheduler.disable() }
         }
 }
